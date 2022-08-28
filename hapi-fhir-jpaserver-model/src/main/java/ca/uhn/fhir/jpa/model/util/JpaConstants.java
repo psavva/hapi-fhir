@@ -112,6 +112,10 @@ public class JpaConstants {
 	 */
 	public static final String OPERATION_PROCESS_MESSAGE = "$process-message";
 	/**
+	 * Operation name for the $summary operation
+	 */
+	public static final String OPERATION_SUMMARY = "$summary";
+	/**
 	 * Operation name for the $meta-delete operation
 	 */
 	public static final String OPERATION_META_DELETE = "$meta-delete";
