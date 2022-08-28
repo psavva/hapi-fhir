@@ -47,5 +47,16 @@ public interface IFhirResourceDaoPatient<T extends IBaseResource> extends IFhirR
 
 	IBundleProvider patientTypeEverything(HttpServletRequest theServletRequest, IPrimitiveType<Integer> theCount, IPrimitiveType<Integer> theOffset, DateRangeParam theLastUpdated, SortSpec theSortSpec, StringAndListParam theContent, StringAndListParam theNarrative, StringAndListParam theFilter, StringAndListParam theTypes, RequestDetails theRequestDetails, TokenOrListParam theId);
 
+	default IBundleProvider patientInstanceSummary(HttpServletRequest theServletRequest, IIdType theId, IPrimitiveType<Integer> theCount, IPrimitiveType<Integer> theOffset, DateRangeParam theLastUpdate, SortSpec theSort, StringAndListParam theContent, StringAndListParam theNarrative, StringAndListParam theFilter, RequestDetails theRequestDetails){
+		return patientInstanceSummary(theServletRequest, theId, theCount, theOffset, theLastUpdate, theSort, theContent, theNarrative, theFilter, new StringAndListParam(), theRequestDetails);
+	}
+
+	default IBundleProvider patientTypeSummary(HttpServletRequest theServletRequest, IPrimitiveType<Integer> theCount, IPrimitiveType<Integer> theOffset, DateRangeParam theLastUpdated, SortSpec theSortSpec, StringAndListParam theContent, StringAndListParam theNarrative, StringAndListParam theFilter, RequestDetails theRequestDetails, TokenOrListParam theId){
+		return patientTypeSummary(theServletRequest, theCount, theOffset, theLastUpdated, theSortSpec, theContent, theNarrative, theFilter, new StringAndListParam(), theRequestDetails, theId);
+	}
+
+	IBundleProvider patientInstanceSummary(HttpServletRequest theServletRequest, IIdType theId, IPrimitiveType<Integer> theCount, IPrimitiveType<Integer> theOffset, DateRangeParam theLastUpdate, SortSpec theSort, StringAndListParam theContent, StringAndListParam theNarrative, StringAndListParam theFilter, StringAndListParam theTypes, RequestDetails theRequestDetails);
+
+	IBundleProvider patientTypeSummary(HttpServletRequest theServletRequest, IPrimitiveType<Integer> theCount, IPrimitiveType<Integer> theOffset, DateRangeParam theLastUpdated, SortSpec theSortSpec, StringAndListParam theContent, StringAndListParam theNarrative, StringAndListParam theFilter, StringAndListParam theTypes, RequestDetails theRequestDetails, TokenOrListParam theId);
 
 }

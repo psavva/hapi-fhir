@@ -114,4 +114,70 @@ public class FhirResourceDaoPatientR4 extends BaseHapiFhirResourceDao<Patient> i
 		return doEverythingOperation(theId, theCount, theOffset, theLastUpdated, theSort, theContent, theNarrative, theFilter, theTypes, theRequestDetails);
 	}
 
+	private IBundleProvider doSummaryOperation(TokenOrListParam theIds,
+																 IPrimitiveType<Integer> theCount,
+																 IPrimitiveType<Integer> theOffset,
+																 DateRangeParam theLastUpdated,
+																 SortSpec theSort,
+																 StringAndListParam theContent,
+																 StringAndListParam theNarrative,
+																 StringAndListParam theFilter,
+																 StringAndListParam theTypes,
+																 RequestDetails theRequest) {
+		SearchParameterMap paramMap = new SearchParameterMap();
+		if (theCount != null) {
+			paramMap.setCount(theCount.getValue());
+		}
+		if (theOffset != null) {
+			throw new IllegalArgumentException(Msg.code(1106) + "Summary operation does not support offset searching");
+		}
+		if (theContent != null) {
+			paramMap.add(Constants.PARAM_CONTENT, theContent);
+		}
+		if (theNarrative != null) {
+			paramMap.add(Constants.PARAM_TEXT, theNarrative);
+		}
+		if (theTypes != null) {
+			paramMap.add(Constants.PARAM_TYPE, theTypes);
+		} else {
+			paramMap.setIncludes(Collections.singleton(IResource.INCLUDE_ALL.asRecursive()));
+		}
+
+		paramMap.setEverythingMode(theIds != null && theIds.getValuesAsQueryTokens().size() == 1 ? EverythingModeEnum.PATIENT_INSTANCE : EverythingModeEnum.PATIENT_TYPE);
+		paramMap.setSort(theSort);
+		paramMap.setLastUpdated(theLastUpdated);
+		if (theIds != null) {
+			if (theRequest.getParameters().containsKey("_mdm")) {
+				String[] paramVal = theRequest.getParameters().get("_mdm");
+				if (Arrays.asList(paramVal).contains("true")) {
+					theIds.getValuesAsQueryTokens().stream().forEach(param -> param.setMdmExpand(true));
+				}
+			}
+			paramMap.add("_id", theIds);
+		}
+
+		if (!isPagingProviderDatabaseBacked(theRequest)) {
+			paramMap.setLoadSynchronous(true);
+		}
+
+		RequestPartitionId requestPartitionId = myPartitionHelperSvc.determineReadPartitionForRequestForSearchType(theRequest, getResourceName(), paramMap, null);
+		return mySearchCoordinatorSvc.registerSearch(this,
+			paramMap,
+			getResourceName(),
+			new CacheControlDirective().parse(theRequest.getHeaders(Constants.HEADER_CACHE_CONTROL)),
+			theRequest,
+			requestPartitionId);
+	}
+
+	@Override
+	public IBundleProvider patientInstanceSummary(HttpServletRequest theServletRequest, IIdType theId, IPrimitiveType<Integer> theCount, IPrimitiveType<Integer> theOffset, DateRangeParam theLastUpdated, SortSpec theSort, StringAndListParam theContent, StringAndListParam theNarrative, StringAndListParam theFilter, StringAndListParam theTypes, RequestDetails theRequestDetails) {
+		TokenOrListParam id = new TokenOrListParam().add(new TokenParam(theId.getIdPart()));
+		return doSummaryOperation(id, theCount, theOffset, theLastUpdated, theSort, theContent, theNarrative, theFilter, theTypes, theRequestDetails);
+	}
+
+	@Override
+	public IBundleProvider patientTypeSummary(HttpServletRequest theServletRequest, IPrimitiveType<Integer> theCount, IPrimitiveType<Integer> theOffset, DateRangeParam theLastUpdated, SortSpec theSort, StringAndListParam theContent, StringAndListParam theNarrative, StringAndListParam theFilter, StringAndListParam theTypes, RequestDetails theRequestDetails, TokenOrListParam theId) {
+		return doSummaryOperation(theId, theCount, theOffset, theLastUpdated, theSort, theContent, theNarrative, theFilter, theTypes, theRequestDetails);
+	}
+
 }
