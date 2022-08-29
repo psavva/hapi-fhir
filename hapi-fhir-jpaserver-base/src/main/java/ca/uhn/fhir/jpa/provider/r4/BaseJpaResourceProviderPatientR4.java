@@ -1,11 +1,13 @@
 package ca.uhn.fhir.jpa.provider.r4;
 
+import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.i18n.Msg;
 import ca.uhn.fhir.jpa.api.dao.IFhirResourceDaoPatient;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.model.primitive.StringDt;
 import ca.uhn.fhir.model.valueset.BundleTypeEnum;
+import ca.uhn.fhir.util.BundleUtil;
 import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.Operation;
 import ca.uhn.fhir.rest.annotation.OperationParam;
@@ -26,8 +28,13 @@ import org.hl7.fhir.r4.model.Coverage;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Composition;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Reference;
+import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.UnsignedIntType;
+import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletRequest;
@@ -171,11 +178,13 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 
 	}
 
+	private FhirContext ctx;
+
 	/**
 	 * Patient/123/$summary
 	 */
-	@Operation(name = JpaConstants.OPERATION_SUMMARY, idempotent = true, bundleType = BundleTypeEnum.SEARCHSET)
-	public IBundleProvider patientInstanceSummary(
+	@Operation(name = JpaConstants.OPERATION_SUMMARY, idempotent = true, bundleType = BundleTypeEnum.DOCUMENT)
+	public Bundle patientInstanceSummary(
 
 		javax.servlet.http.HttpServletRequest theServletRequest,
 
@@ -216,9 +225,12 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 		RequestDetails theRequestDetails
 	) {
 
+		ctx = theRequestDetails.getFhirContext();
 		startRequest(theServletRequest);
 		try {
-			return ((IFhirResourceDaoPatient<Patient>) getDao()).patientInstanceSummary(theServletRequest, theId, theCount, theOffset, theLastUpdated, theSortSpec, toStringAndList(theContent), toStringAndList(theNarrative), toStringAndList(theFilter), toStringAndList(theTypes), theRequestDetails);
+			return (
+				buildSummaryFromSearch(((IFhirResourceDaoPatient<Patient>) getDao()).patientInstanceSummary(theServletRequest, theId, theCount, theOffset, theLastUpdated, theSortSpec, toStringAndList(theContent), toStringAndList(theNarrative), toStringAndList(theFilter), toStringAndList(theTypes), theRequestDetails))
+				);
 		} finally {
 			endRequest(theServletRequest);
 		}
@@ -227,8 +239,8 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 	/**
 	 * /Patient/$summary
 	 */
-	@Operation(name = JpaConstants.OPERATION_SUMMARY, idempotent = true, bundleType = BundleTypeEnum.SEARCHSET)
-	public IBundleProvider patientTypeSummary(
+	@Operation(name = JpaConstants.OPERATION_SUMMARY, idempotent = true, bundleType = BundleTypeEnum.DOCUMENT)
+	public Bundle patientTypeSummary(
 
 		javax.servlet.http.HttpServletRequest theServletRequest,
 
@@ -270,14 +282,51 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 		RequestDetails theRequestDetails
 	) {
 
+		ctx = theRequestDetails.getFhirContext();
 		startRequest(theServletRequest);
 		try {
-			return ((IFhirResourceDaoPatient<Patient>) getDao()).patientTypeSummary(theServletRequest, theCount, theOffset, theLastUpdated, theSortSpec, toStringAndList(theContent), toStringAndList(theNarrative), toStringAndList(theFilter), toStringAndList(theTypes), theRequestDetails, toFlattenedPatientIdTokenParamList(theId));
+			return (
+				buildSummaryFromSearch(((IFhirResourceDaoPatient<Patient>) getDao()).patientTypeSummary(theServletRequest, theCount, theOffset, theLastUpdated, theSortSpec, toStringAndList(theContent), toStringAndList(theNarrative), toStringAndList(theFilter), toStringAndList(theTypes), theRequestDetails, toFlattenedPatientIdTokenParamList(theId)))
+				);
 		} finally {
 			endRequest(theServletRequest);
 		}
 
 	}
+
+	private Bundle buildSummaryFromSearch(IBundleProvider searchSet) {
+		Bundle resourceBundle = convertToBundle(searchSet);
+		Composition composition = buildComposition(resourceBundle);
+		Bundle bundle = bundleCompositionAndResources(composition, resourceBundle);
+		return bundle;
+	}
+
+	private Composition buildComposition(Bundle resourceBundle) {
+		Composition composition = new Composition();
+		return composition;
+	}
+
+	private Bundle convertToBundle(IBundleProvider iBundleProvider) {
+		Bundle bundle = new Bundle();
+		List<IBaseResource> iBaseResourceList = iBundleProvider.getAllResources();
+		return addResourceListToBundle(bundle, iBaseResourceList);
+	}
+
+	private Bundle bundleCompositionAndResources(Composition composition, Bundle resourceBundle) {
+		Bundle bundle = new Bundle();
+		List<IBaseResource> iBaseResourceList = BundleUtil.toListOfResources(ctx, resourceBundle);
+		bundle.addEntry().setResource(composition);
+		return addResourceListToBundle(bundle, iBaseResourceList);
+	}
+
+	private Bundle addResourceListToBundle(Bundle bundle, List<IBaseResource> iBaseResourceList) {
+		for (IBaseResource ibaseResource : iBaseResourceList) {
+			Resource resource = (Resource) ibaseResource;
+			bundle.addEntry().setResource(resource);
+		}
+		return bundle;
+	}
+
 
 	/**
 	 * /Patient/$member-match operation
