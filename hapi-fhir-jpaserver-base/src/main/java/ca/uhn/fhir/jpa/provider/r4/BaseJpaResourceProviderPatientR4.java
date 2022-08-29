@@ -34,8 +34,14 @@ import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.UnsignedIntType;
+import org.hl7.fhir.r4.model.CodeSystem;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Narrative;
 import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.utilities.xhtml.XhtmlNode;
 import org.springframework.beans.factory.annotation.Autowired;
+
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -303,6 +309,18 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 
 	private Composition buildComposition(Bundle resourceBundle) {
 		Composition composition = new Composition();
+		composition = addAllergiesAndIntolerancesSection(composition, resourceBundle);
+		return composition;
+	}
+
+	private Composition addAllergiesAndIntolerancesSection(Composition composition, Bundle resourceBundle) {
+
+
+		composition.addSection()
+		.setTitle("Allergies and Intolerances")
+		.setCode(new CodeableConcept().addCoding(new Coding().setSystem("http://loinc.org").setCode("48765-2").setDisplay("Allergies and adverse reactions Document")))
+		.setText(new Narrative().setStatus(Narrative.NarrativeStatus.GENERATED).setDiv(new XhtmlNode().setValue("<div>Allergies and Intolerances</div>")))
+		.addEntry().setReference(new Reference("AllergyIntolerance/ALLERGY-ABC").getReference());
 		return composition;
 	}
 
