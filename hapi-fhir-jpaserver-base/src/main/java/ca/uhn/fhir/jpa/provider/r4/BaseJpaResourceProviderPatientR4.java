@@ -38,14 +38,18 @@ import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Narrative;
+import org.hl7.fhir.r4.model.AllergyIntolerance;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.utilities.xhtml.XhtmlNode;
+import org.hl7.fhir.r4.model.ResourceType;
+import org.hl7.fhir.r4.model.Composition.SectionComponent;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -301,43 +305,10 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 	}
 
 	private Bundle buildSummaryFromSearch(IBundleProvider searchSet) {
-		Bundle resourceBundle = convertToBundle(searchSet);
-		Composition composition = buildComposition(resourceBundle);
-		Bundle bundle = bundleCompositionAndResources(composition, resourceBundle);
-		return bundle;
-	}
-
-	private Composition buildComposition(Bundle resourceBundle) {
-		Composition composition = new Composition();
-		composition = addAllergiesAndIntolerancesSection(composition, resourceBundle);
-		return composition;
-	}
-
-	private Composition addAllergiesAndIntolerancesSection(Composition composition, Bundle resourceBundle) {
-
-
-		composition.addSection()
-		.setTitle("Allergies and Intolerances")
-		.setCode(new CodeableConcept().addCoding(new Coding().setSystem("http://loinc.org").setCode("48765-2").setDisplay("Allergies and adverse reactions Document")))
-		.setText(new Narrative().setStatus(Narrative.NarrativeStatus.GENERATED).setDiv(new XhtmlNode().setValue("<div>Allergies and Intolerances</div>")))
-		.addEntry().setReference(new Reference("AllergyIntolerance/ALLERGY-ABC").getReference());
-		return composition;
-	}
-
-	private Bundle convertToBundle(IBundleProvider iBundleProvider) {
 		Bundle bundle = new Bundle();
-		List<IBaseResource> iBaseResourceList = iBundleProvider.getAllResources();
-		return addResourceListToBundle(bundle, iBaseResourceList);
-	}
-
-	private Bundle bundleCompositionAndResources(Composition composition, Bundle resourceBundle) {
-		Bundle bundle = new Bundle();
-		List<IBaseResource> iBaseResourceList = BundleUtil.toListOfResources(ctx, resourceBundle);
+		List<IBaseResource> iBaseResourceList = searchSet.getAllResources();
+		Composition composition = buildComposition(iBaseResourceList);
 		bundle.addEntry().setResource(composition);
-		return addResourceListToBundle(bundle, iBaseResourceList);
-	}
-
-	private Bundle addResourceListToBundle(Bundle bundle, List<IBaseResource> iBaseResourceList) {
 		for (IBaseResource ibaseResource : iBaseResourceList) {
 			Resource resource = (Resource) ibaseResource;
 			bundle.addEntry().setResource(resource);
@@ -345,7 +316,53 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 		return bundle;
 	}
 
+	private Composition buildComposition(List<IBaseResource> iBaseResourceList) {
+		Composition composition = new Composition();
+		composition = addAllergiesAndIntolerancesSection(composition, iBaseResourceList);
+		return composition;
+	}
 
+	private Composition addAllergiesAndIntolerancesSection(Composition composition, List<IBaseResource> iBaseResourceList) {
+		List<Resource> allergies = new ArrayList<Resource>();
+		for (IBaseResource ibaseResource : iBaseResourceList) {
+			Resource resource = (Resource) ibaseResource;
+			if ( resource.getResourceType()==ResourceType.AllergyIntolerance ) {
+				allergies.add(resource);
+			}
+		}
+		Composition.SectionComponent section = composition.addSection();
+		section.setTitle("Allergies and Intolerances")
+		.setCode(new CodeableConcept().addCoding(new Coding().setSystem("http://loinc.org").setCode("48765-2").setDisplay("Allergies and adverse reactions Document")))
+		.setText(new Narrative().setStatus(Narrative.NarrativeStatus.GENERATED).setDiv(new XhtmlNode().setValue("<div>Allergies and Intolerances</div>")));
+		// Entry entry = composition.addEntry();
+		for (Resource allergy : allergies) {
+			section.addEntry().setReference(new Reference(allergy.getId()).getReference());
+		}
+		return composition;
+	}
+
+	// private Bundle convertToBundle(IBundleProvider iBundleProvider) {
+	// 	Bundle bundle = new Bundle();
+	// 	List<IBaseResource> iBaseResourceList = iBundleProvider.getAllResources();
+	// 	return addResourceListToBundle(bundle, iBaseResourceList);
+	// }
+
+	// private Bundle bundleCompositionAndResources(Composition composition, Bundle resourceBundle) {
+	// 	Bundle bundle = new Bundle();
+	// 	List<IBaseResource> iBaseResourceList = BundleUtil.toListOfResources(ctx, resourceBundle);
+	// 	bundle.addEntry().setResource(composition);
+	// 	return addResourceListToBundle(bundle, iBaseResourceList);
+	// }
+
+	// private Bundle addResourceListToBundle(Bundle bundle, List<IBaseResource> iBaseResourceList) {
+	// 	for (IBaseResource ibaseResource : iBaseResourceList) {
+	// 		Resource resource = (Resource) ibaseResource;
+	// 		bundle.addEntry().setResource(resource);
+	// 	}
+	// 	return bundle;
+	// }
+
+	
 	/**
 	 * /Patient/$member-match operation
 	 * Basic implementation matching by coverage id or by coverage identifier. Not matching by
