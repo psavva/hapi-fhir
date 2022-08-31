@@ -51,6 +51,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -188,8 +190,6 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 
 	}
 
-	private FhirContext ctx;
-
 	/**
 	 * Patient/123/$summary
 	 */
@@ -235,7 +235,6 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 		RequestDetails theRequestDetails
 	) {
 
-		ctx = theRequestDetails.getFhirContext();
 		startRequest(theServletRequest);
 		try {
 			return (
@@ -292,7 +291,6 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 		RequestDetails theRequestDetails
 	) {
 
-		ctx = theRequestDetails.getFhirContext();
 		startRequest(theServletRequest);
 		try {
 			return (
@@ -306,62 +304,126 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 
 	private Bundle buildSummaryFromSearch(IBundleProvider searchSet) {
 		Bundle bundle = new Bundle();
-		List<IBaseResource> iBaseResourceList = searchSet.getAllResources();
-		Composition composition = buildComposition(iBaseResourceList);
+		List<Resource> resourceList = createResourceList(searchSet.getAllResources());
+		Composition composition = buildComposition(resourceList);
 		bundle.addEntry().setResource(composition);
-		for (IBaseResource ibaseResource : iBaseResourceList) {
-			Resource resource = (Resource) ibaseResource;
+		for (Resource resource : resourceList) {
 			bundle.addEntry().setResource(resource);
 		}
 		return bundle;
 	}
 
-	private Composition buildComposition(List<IBaseResource> iBaseResourceList) {
-		Composition composition = new Composition();
-		composition = addAllergiesAndIntolerancesSection(composition, iBaseResourceList);
-		return composition;
+	private List<Resource> createResourceList(List<IBaseResource> iBaseResourceList) {
+		List<Resource> resourceList = new ArrayList<Resource>();
+		for (IBaseResource ibaseResource : iBaseResourceList) {
+			resourceList.add((Resource) ibaseResource);
+		}
+		return resourceList;
 	}
 
-	private Composition addAllergiesAndIntolerancesSection(Composition composition, List<IBaseResource> iBaseResourceList) {
-		List<Resource> allergies = new ArrayList<Resource>();
-		for (IBaseResource ibaseResource : iBaseResourceList) {
-			Resource resource = (Resource) ibaseResource;
-			if ( resource.getResourceType()==ResourceType.AllergyIntolerance ) {
-				allergies.add(resource);
+	private enum IPSSection {
+		ALLERGY_INTOLERANCE,
+		MEDICATION_SUMMARY,
+		PROBLEM_LIST,
+		IMMUNIZATIONS,
+		PROCEDURES,
+		MEDICAL_DEVICES,
+		DIAGNOSTIC_RESULTS,
+		// VITAL_SIGNS,
+		// ILLNESS_HISTORY,
+		// PREGNANCY,
+		// SOCIAL_HISTORY,
+		FUNCTIONAL_STATUS,
+		PLAN_OF_CARE,
+		ADVANCE_DIRECTIVES
+	}
+
+	private static final Map<IPSSection, Map<String, String>> SectionText = Map.of(
+		IPSSection.ALLERGY_INTOLERANCE, Map.of("title", "Allergies and Intolerances", "code", "48765-2", "display", "Allergies and adverse reactions Document"),
+		IPSSection.MEDICATION_SUMMARY, Map.of("title", "Medication", "code", "10160-0", "display", "History of Medication use Narrative"),
+		IPSSection.PROBLEM_LIST, Map.of("title", "Active Problems", "code", "11450-4", "display", "Problem list Reported"),
+		IPSSection.IMMUNIZATIONS, Map.of("title", "Immunizations", "code", "11369-6", "display", "Immunizations Document"),
+		IPSSection.PROCEDURES, Map.of("title", "Procedures", "code", "47519-4", "display", "Procedures Document"),
+		IPSSection.MEDICAL_DEVICES, Map.of("title", "Medical Devices", "code", "46240-8", "display", "Medical Devices Document"),
+		IPSSection.DIAGNOSTIC_RESULTS, Map.of("title", "Diagnostic Results", "code", "30954-2", "display", "Diagnostic Results Document"),
+		// // IPSSection.VITAL_SIGNS, Map.of("title", "Vital Signs", "code", "8716-3", "display", "Vital Signs Document"),
+		// IPSSection.ILLNESS_HISTORY, Map.of("title", "History of Past Illness", "code", "11348-0", "display", "Hx of Past illness"),
+		// IPSSection.PREGNANCY, Map.of("title", "Pregnancy", "code", "11362-0", "display", "Pregnancy Document"),
+		// IPSSection.SOCIAL_HISTORY, Map.of("title", "Social History", "code", "29762-2", "display", "Social History Document"),
+		IPSSection.FUNCTIONAL_STATUS, Map.of("title", "Functional Status", "code", "47420-5", "display", "Functional Status Document"),
+		IPSSection.PLAN_OF_CARE, Map.of("title", "Plan of Care", "code", "18776-5", "display", "Plan of Care Document"),
+		IPSSection.ADVANCE_DIRECTIVES, Map.of("title", "Advance Directives", "code", "42349-0", "display", "Advance Directives Document")
+	);
+
+	private static final Map<IPSSection, List<ResourceType>> SectionTypes = Map.of(
+		IPSSection.ALLERGY_INTOLERANCE, List.of(ResourceType.AllergyIntolerance),
+		IPSSection.MEDICATION_SUMMARY, List.of(ResourceType.MedicationStatement, ResourceType.MedicationRequest),
+		IPSSection.PROBLEM_LIST, List.of(ResourceType.Condition),
+		IPSSection.IMMUNIZATIONS, List.of(ResourceType.Immunization),
+		IPSSection.PROCEDURES, List.of(ResourceType.Procedure),
+		IPSSection.MEDICAL_DEVICES, List.of(ResourceType.DeviceUseStatement),
+		IPSSection.DIAGNOSTIC_RESULTS, List.of(ResourceType.DiagnosticReport),
+		// // IPSSection.VITAL_SIGNS, List.of(ResourceType.VITAL_SIGNS),
+		// IPSSection.ILLNESS_HISTORY, List.of(ResourceType.Condition),
+		// IPSSection.PREGNANCY, List.of(ResourceType.Condition),
+		// IPSSection.SOCIAL_HISTORY, List.of(ResourceType.Condition),
+		IPSSection.FUNCTIONAL_STATUS, List.of(ResourceType.ClinicalImpression),
+		IPSSection.PLAN_OF_CARE, List.of(ResourceType.CarePlan),
+		IPSSection.ADVANCE_DIRECTIVES, List.of(ResourceType.Consent) 
+	);
+
+	private Composition buildComposition(List<Resource> resourceList) {
+		Composition composition = new Composition();
+		HashMap<IPSSection, List<Resource>> sortedResources = createIPSResourceHashMap(resourceList);
+		for (IPSSection iPSSection : IPSSection.values()) {
+			if (sortedResources.get(iPSSection) != null && sortedResources.get(iPSSection).size() > 0) {
+				Composition.SectionComponent section = createSection(SectionText.get(iPSSection), sortedResources.get(iPSSection));
+				composition.addSection(section);
 			}
 		}
-		Composition.SectionComponent section = composition.addSection();
-		section.setTitle("Allergies and Intolerances")
-		.setCode(new CodeableConcept().addCoding(new Coding().setSystem("http://loinc.org").setCode("48765-2").setDisplay("Allergies and adverse reactions Document")))
-		.setText(new Narrative().setStatus(Narrative.NarrativeStatus.GENERATED).setDiv(new XhtmlNode().setValue("<div>Allergies and Intolerances</div>")));
-		// Entry entry = composition.addEntry();
-		for (Resource allergy : allergies) {
-			section.addEntry().setReference(new Reference(allergy.getId()).getReference());
-		}
 		return composition;
 	}
 
-	// private Bundle convertToBundle(IBundleProvider iBundleProvider) {
-	// 	Bundle bundle = new Bundle();
-	// 	List<IBaseResource> iBaseResourceList = iBundleProvider.getAllResources();
-	// 	return addResourceListToBundle(bundle, iBaseResourceList);
-	// }
+	private HashMap<IPSSection, List<Resource>> createIPSResourceHashMap(List<Resource> resourceList) {
+		HashMap<IPSSection, List<Resource>> iPSResourceMap = new HashMap<IPSSection, List<Resource>>();
+		
+		for (Resource resource : resourceList) {
+			for (IPSSection iPSSection : IPSSection.values()) {
+				if ( SectionTypes.get(iPSSection).contains(resource.getResourceType()) ) {
+					if ( !iPSResourceMap.containsKey(iPSSection) ) {
+						iPSResourceMap.put(iPSSection, new ArrayList<Resource>());
+					}
+					iPSResourceMap.get(iPSSection).add(resource);
+				}
+			}
+		}
 
-	// private Bundle bundleCompositionAndResources(Composition composition, Bundle resourceBundle) {
-	// 	Bundle bundle = new Bundle();
-	// 	List<IBaseResource> iBaseResourceList = BundleUtil.toListOfResources(ctx, resourceBundle);
-	// 	bundle.addEntry().setResource(composition);
-	// 	return addResourceListToBundle(bundle, iBaseResourceList);
-	// }
+		return iPSResourceMap;
+	}
 
-	// private Bundle addResourceListToBundle(Bundle bundle, List<IBaseResource> iBaseResourceList) {
-	// 	for (IBaseResource ibaseResource : iBaseResourceList) {
-	// 		Resource resource = (Resource) ibaseResource;
-	// 		bundle.addEntry().setResource(resource);
-	// 	}
-	// 	return bundle;
-	// }
+	private Composition.SectionComponent createSection(Map<String, String> text, List<Resource> resources) {
+		Composition.SectionComponent section = new Composition.SectionComponent();
+		section.setTitle(text.get("title"))
+			.setCode(new CodeableConcept().addCoding(new Coding().setSystem("http://loinc.org").setCode(text.get("code")).setDisplay(text.get("display"))))
+			.setText(new Narrative().setStatus(Narrative.NarrativeStatus.GENERATED).setDiv(new XhtmlNode().setValue("<div>Allergies and Intolerances</div>")));
+		
+		HashMap<ResourceType, List<Resource>> resourcesByType = new HashMap<ResourceType, List<Resource>>();
+		for (Resource resource : resources) {
+			if ( !resourcesByType.containsKey(resource.getResourceType()) ) {
+				resourcesByType.put(resource.getResourceType(), new ArrayList<Resource>());
+			}
+			resourcesByType.get(resource.getResourceType()).add(resource);
+		}
+		for (List<Resource> resourceList : resourcesByType.values()) {
+			// Cannot figure out how to add more than one entry per section once we have the method we can use this loop to do so
+			// List<Reference> entry = new ArrayList<Reference>();	
+			for (Resource resource : resourceList) {
+				section.addEntry(new Reference(resource));
+			}
+		}
 
+		return section;
+	}
 	
 	/**
 	 * /Patient/$member-match operation
