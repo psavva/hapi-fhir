@@ -339,20 +339,20 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 	}
 
 	private static final Map<IPSSection, Map<String, String>> SectionText = Map.of(
-		IPSSection.ALLERGY_INTOLERANCE, Map.of("title", "Allergies and Intolerances", "code", "48765-2", "display", "Allergies and adverse reactions Document"),
-		IPSSection.MEDICATION_SUMMARY, Map.of("title", "Medication", "code", "10160-0", "display", "History of Medication use Narrative"),
-		IPSSection.PROBLEM_LIST, Map.of("title", "Active Problems", "code", "11450-4", "display", "Problem list Reported"),
-		IPSSection.IMMUNIZATIONS, Map.of("title", "Immunizations", "code", "11369-6", "display", "Immunizations Document"),
-		IPSSection.PROCEDURES, Map.of("title", "Procedures", "code", "47519-4", "display", "Procedures Document"),
-		IPSSection.MEDICAL_DEVICES, Map.of("title", "Medical Devices", "code", "46240-8", "display", "Medical Devices Document"),
-		IPSSection.DIAGNOSTIC_RESULTS, Map.of("title", "Diagnostic Results", "code", "30954-2", "display", "Diagnostic Results Document"),
-		// // IPSSection.VITAL_SIGNS, Map.of("title", "Vital Signs", "code", "8716-3", "display", "Vital Signs Document"),
-		// IPSSection.ILLNESS_HISTORY, Map.of("title", "History of Past Illness", "code", "11348-0", "display", "Hx of Past illness"),
-		// IPSSection.PREGNANCY, Map.of("title", "Pregnancy", "code", "11362-0", "display", "Pregnancy Document"),
-		// IPSSection.SOCIAL_HISTORY, Map.of("title", "Social History", "code", "29762-2", "display", "Social History Document"),
-		IPSSection.FUNCTIONAL_STATUS, Map.of("title", "Functional Status", "code", "47420-5", "display", "Functional Status Document"),
-		IPSSection.PLAN_OF_CARE, Map.of("title", "Plan of Care", "code", "18776-5", "display", "Plan of Care Document"),
-		IPSSection.ADVANCE_DIRECTIVES, Map.of("title", "Advance Directives", "code", "42349-0", "display", "Advance Directives Document")
+		IPSSection.ALLERGY_INTOLERANCE, Map.of("title", "Allergies and Intolerances", "code", "48765-2", "display", "Allergies and Adverse Reactions"),
+		IPSSection.MEDICATION_SUMMARY, Map.of("title", "Medication", "code", "10160-0", "display", "Medication List"),
+		IPSSection.PROBLEM_LIST, Map.of("title", "Active Problems", "code", "11450-4", "display", "Problem List"),
+		IPSSection.IMMUNIZATIONS, Map.of("title", "Immunizations", "code", "11369-6", "display", "History of Immunizations"),
+		IPSSection.PROCEDURES, Map.of("title", "Procedures", "code", "47519-4", "display", "History of Procedures"),
+		IPSSection.MEDICAL_DEVICES, Map.of("title", "Medical Devices", "code", "46240-8", "display", "Medical Devices"),
+		IPSSection.DIAGNOSTIC_RESULTS, Map.of("title", "Diagnostic Results", "code", "30954-2", "display", "Diagnostic Results"),
+		IPSSection.VITAL_SIGNS, Map.of("title", "Vital Signs", "code", "8716-3", "display", "Vital Signs"),
+		IPSSection.PREGNANCY, Map.of("title", "Pregnancy", "code", "11362-0", "display", "Pregnancy Information"),
+		IPSSection.SOCIAL_HISTORY, Map.of("title", "Social History", "code", "29762-2", "display", "Social History"),
+		// IPSSection.ILLNESS_HISTORY, Map.of("title", "History of Past Illness", "code", "11348-0", "display", "History of Past Illness"),
+		IPSSection.FUNCTIONAL_STATUS, Map.of("title", "Functional Status", "code", "47420-5", "display", "Functional Status"),
+		IPSSection.PLAN_OF_CARE, Map.of("title", "Plan of Care", "code", "18776-5", "display", "Plan of Care"),
+		IPSSection.ADVANCE_DIRECTIVES, Map.of("title", "Advance Directives", "code", "42349-0", "display", "Advance Directives")
 	);
 
 	private static final Map<IPSSection, List<ResourceType>> SectionTypes = Map.of(
@@ -362,11 +362,11 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 		IPSSection.IMMUNIZATIONS, List.of(ResourceType.Immunization),
 		IPSSection.PROCEDURES, List.of(ResourceType.Procedure),
 		IPSSection.MEDICAL_DEVICES, List.of(ResourceType.DeviceUseStatement),
-		IPSSection.DIAGNOSTIC_RESULTS, List.of(ResourceType.DiagnosticReport),
-		// // IPSSection.VITAL_SIGNS, List.of(ResourceType.VITAL_SIGNS),
+		IPSSection.DIAGNOSTIC_RESULTS, List.of(ResourceType.DiagnosticReport, ResourceType.Observation),
+		IPSSection.VITAL_SIGNS, List.of(ResourceType.Observation),
+		IPSSection.PREGNANCY, List.of(ResourceType.Observation),
+		IPSSection.SOCIAL_HISTORY, List.of(ResourceType.Observation),
 		// IPSSection.ILLNESS_HISTORY, List.of(ResourceType.Condition),
-		// IPSSection.PREGNANCY, List.of(ResourceType.Condition),
-		// IPSSection.SOCIAL_HISTORY, List.of(ResourceType.Condition),
 		IPSSection.FUNCTIONAL_STATUS, List.of(ResourceType.ClinicalImpression),
 		IPSSection.PLAN_OF_CARE, List.of(ResourceType.CarePlan),
 		IPSSection.ADVANCE_DIRECTIVES, List.of(ResourceType.Consent) 
@@ -386,14 +386,36 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 
 	private HashMap<IPSSection, List<Resource>> createIPSResourceHashMap(List<Resource> resourceList) {
 		HashMap<IPSSection, List<Resource>> iPSResourceMap = new HashMap<IPSSection, List<Resource>>();
-		
+		String[] pregnancyCodes = {"82810-3", "11636-8", "11637-6", "11638-4", "11639-2", "11640-0", "11612-9", "11613-7", "11614-5", "33065-4"};		
 		for (Resource resource : resourceList) {
 			for (IPSSection iPSSection : IPSSection.values()) {
 				if ( SectionTypes.get(iPSSection).contains(resource.getResourceType()) ) {
-					if ( !iPSResourceMap.containsKey(iPSSection) ) {
-						iPSResourceMap.put(iPSSection, new ArrayList<Resource>());
+					if (iPSSection == "VITAL_SIGNS") {
+						if (resource.getCategory().get(0).getCode() == "vital-signs") {
+							iPSResourceMap.get(iPSSection).add(resource);
+						}
 					}
-					iPSResourceMap.get(iPSSection).add(resource);
+					else if (iPSSection == "PREGNANCY") {
+						if (pregnancyCodes.contains(resource.getCode().getCoding().get(0).getCode())) {
+							iPSResourceMap.get(iPSSection).add(resource);
+						}
+					}
+					else if (iPSSection == "SOCIAL_HISTORY") {
+						if (resource.getCategory().get(0).getCode() == "social-history") {
+							iPSResourceMap.get(iPSSection).add(resource);
+						}
+					}
+					else if (iPSSection == "DIAGNOSTIC_RESULTS") {
+						if (resource.getResourceType() == "DiagnosticReport" || resource.getCategory().get(0).getCode() == "laboratory") {
+							iPSResourceMap.get(iPSSection).add(resource);
+						}
+					}
+					else {
+						if ( !iPSResourceMap.containsKey(iPSSection) ) {
+							iPSResourceMap.put(iPSSection, new ArrayList<Resource>());
+						}
+						iPSResourceMap.get(iPSSection).add(resource);
+					}
 				}
 			}
 		}
@@ -405,7 +427,7 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 		Composition.SectionComponent section = new Composition.SectionComponent();
 		section.setTitle(text.get("title"))
 			.setCode(new CodeableConcept().addCoding(new Coding().setSystem("http://loinc.org").setCode(text.get("code")).setDisplay(text.get("display"))))
-			.setText(new Narrative().setStatus(Narrative.NarrativeStatus.GENERATED).setDiv(new XhtmlNode().setValue("<div>Allergies and Intolerances</div>")));
+			.setText(new Narrative().setStatus(Narrative.NarrativeStatus.GENERATED).setDiv(new XhtmlNode().setValue("<div>Holder for future narrative</div>")));
 		
 		HashMap<ResourceType, List<Resource>> resourcesByType = new HashMap<ResourceType, List<Resource>>();
 		for (Resource resource : resources) {
