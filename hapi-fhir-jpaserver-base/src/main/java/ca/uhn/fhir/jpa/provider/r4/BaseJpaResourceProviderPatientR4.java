@@ -57,6 +57,8 @@ import java.util.Optional;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Date;
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -309,7 +311,7 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 	private Bundle buildSummaryFromSearch(IBundleProvider searchSet) {
 		Bundle bundle = createIPSBundle();
 		List<Resource> resourceList = createResourceList(searchSet.getAllResources());
-		Composition composition = buildComposition(resourceList);
+		Composition composition = createIPSComposition(resourceList);
 		bundle.addEntry().setResource(composition);
 		for (Resource resource : resourceList) {
 			bundle.addEntry().setResource(resource);
@@ -385,8 +387,21 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 		Map.entry(IPSSection.ADVANCE_DIRECTIVES, List.of(ResourceType.Consent))
 	);
 
-	private Composition buildComposition(List<Resource> resourceList) {
+	private Composition createIPSComposition(List<Resource> resourceList) {
 		Composition composition = new Composition();
+		composition.setStatus(Composition.CompositionStatus.FINAL)
+			.setType(new CodeableConcept().addCoding(new Coding().setCode("60591-5").setSystem("http://loinc.org").setDisplay("Patient Summary Document")))
+			.setSubject(new Reference(resourceList.get(0)))
+			.setDate(new Date())
+			.setTitle("Patient Summary as of " + DateTimeFormatter.ofPattern("MM/dd/yyyy").format(LocalDate.now()))
+			.setConfidentiality(Composition.DocumentConfidentiality.N)
+			// Should one of these be set to our system?
+			// .setAuthor(List.of(new Reference(practitioner.getIdElement().getIdPart())))
+			// .setCustodian(new Reference(organization.getIdElement().getIdPart()))
+			// .setRelatesTo(List.of(new Composition.RelatedComponent().setType(Composition.RelatedTypeEnum.SUBJECT).setTarget(new Reference(resourceList.get(0)))))
+			// .setEvent(List.of(new Composition.EventComponent().setCode(new CodeableConcept().addCoding(new Coding().setCode("PCPR").setSystem("http://terminology.hl7.org/CodeSystem/v3-ActClass").setDisplay("")))))
+			.setId(IdDt.newRandomUuid());
+
 		HashMap<IPSSection, List<Resource>> sortedResources = createIPSResourceHashMap(resourceList);
 		for (IPSSection iPSSection : IPSSection.values()) {
 			if (sortedResources.get(iPSSection) != null && sortedResources.get(iPSSection).size() > 0) {
