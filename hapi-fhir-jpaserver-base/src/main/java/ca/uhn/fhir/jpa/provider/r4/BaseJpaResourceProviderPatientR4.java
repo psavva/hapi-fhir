@@ -6,6 +6,7 @@ import ca.uhn.fhir.jpa.api.dao.IFhirResourceDaoPatient;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.model.primitive.StringDt;
+import ca.uhn.fhir.model.primitive.IdDt;
 import ca.uhn.fhir.model.valueset.BundleTypeEnum;
 import ca.uhn.fhir.util.BundleUtil;
 import ca.uhn.fhir.rest.annotation.IdParam;
@@ -30,6 +31,7 @@ import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Composition;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Bundle.BundleType;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
@@ -54,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Date;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -304,13 +307,22 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 	}
 
 	private Bundle buildSummaryFromSearch(IBundleProvider searchSet) {
-		Bundle bundle = new Bundle();
+		Bundle bundle = createIPSBundle();
 		List<Resource> resourceList = createResourceList(searchSet.getAllResources());
 		Composition composition = buildComposition(resourceList);
 		bundle.addEntry().setResource(composition);
 		for (Resource resource : resourceList) {
 			bundle.addEntry().setResource(resource);
 		}
+		return bundle;
+	}
+
+	private Bundle createIPSBundle() {
+		Bundle bundle = new Bundle();
+		bundle.setType(BundleType.DOCUMENT)
+			.setTimestamp(new Date())
+			.setLanguage("en-GB")
+			.setId(IdDt.newRandomUuid());		
 		return bundle;
 	}
 
