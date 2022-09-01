@@ -496,7 +496,7 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 		// We'll to check this logic again but at least the types match so it compiles
 		switch(iPSSection) {
 			case VITAL_SIGNS:
-				if (observation.getCategory().get(0).getCoding().get(0).getDisplay() == "vital-signs") {
+				if (observation.getCategory().get(0).getCoding().get(0).getCode() == "vital-signs") {
 					inSection = true;
 				}
 				break;
@@ -506,12 +506,12 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 				}
 				break;
 			case SOCIAL_HISTORY:
-				if (observation.getCategory().get(0).getCoding().get(0).getDisplay() == "social-history") {
+				if (observation.getCategory().get(0).getCoding().get(0).getCode() == "social-history") {
 					inSection = true;
 				}
 				break;
 			case DIAGNOSTIC_RESULTS:
-				if (observation.getCategory().get(0).getCoding().get(0).getDisplay() == "laboratory") {
+				if (observation.getCategory().get(0).getCoding().get(0).getCode() == "laboratory") {
 					inSection = true;
 				}
 				break;
