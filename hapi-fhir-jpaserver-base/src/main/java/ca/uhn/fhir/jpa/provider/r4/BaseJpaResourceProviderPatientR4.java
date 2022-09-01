@@ -29,6 +29,7 @@ import org.hl7.fhir.r4.model.Coverage;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Condition;
 import org.hl7.fhir.r4.model.Composition;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleType;
@@ -389,16 +390,17 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 
 	private Composition createIPSComposition(List<Resource> resourceList) {
 		Composition composition = new Composition();
+		Patient patient = (Patient) resourceList.get(0);
 		composition.setStatus(Composition.CompositionStatus.FINAL)
 			.setType(new CodeableConcept().addCoding(new Coding().setCode("60591-5").setSystem("http://loinc.org").setDisplay("Patient Summary Document")))
-			.setSubject(new Reference(resourceList.get(0)))
+			.setSubject(new Reference(patient))
 			.setDate(new Date())
 			.setTitle("Patient Summary as of " + DateTimeFormatter.ofPattern("MM/dd/yyyy").format(LocalDate.now()))
 			.setConfidentiality(Composition.DocumentConfidentiality.N)
 			// Should one of these be set to our system?
-			// .setAuthor(List.of(new Reference(practitioner.getIdElement().getIdPart())))
-			// .setCustodian(new Reference(organization.getIdElement().getIdPart()))
-			// .setRelatesTo(List.of(new Composition.RelatedComponent().setType(Composition.RelatedTypeEnum.SUBJECT).setTarget(new Reference(resourceList.get(0)))))
+			// .setAuthor(List.of(new Reference(practitioner)))
+			// .setCustodian(new Reference(organization))
+			// .setRelatesTo(List.of(new Composition.RelatedComponent().setType(Composition.RelatedTypeEnum.SUBJECT).setTarget(new Reference(patient))))
 			// .setEvent(List.of(new Composition.EventComponent().setCode(new CodeableConcept().addCoding(new Coding().setCode("PCPR").setSystem("http://terminology.hl7.org/CodeSystem/v3-ActClass").setDisplay("")))))
 			.setId(IdDt.newRandomUuid());
 
@@ -428,7 +430,62 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 			}
 		}
 
+		Patient patient = (Patient) resourceList.get(0);
+
+		if (iPSResourceMap.get(IPSSection.ALLERGY_INTOLERANCE) == null) {
+			List<Resource> allergyList = ListOf(noKnownAllergies(patient));
+			iPSResourceMap.put(IPSSection.ALLERGY_INTOLERANCE, allergyList);
+		}
+
+		if (iPSResourceMap.get(IPSSection.MEDICATION_SUMMARY) == null) {
+			List<Resource> medicationList = ListOf(noKnownMedications(patient));
+			iPSResourceMap.put(IPSSection.MEDICATION_SUMMARY, medicationList);
+		}
+
+		if (iPSResourceMap.get(IPSSection.PROBLEM_LIST) == null) {
+			List<Resource> problemList = List.of( noKnownProblems(patient));
+			iPSResourceMap.put(IPSSection.PROBLEM_LIST, problemList);
+		}
+
 		return iPSResourceMap;
+	}
+
+	private AllergyIntolerance noKnownAllergies(Patient patient) {
+		AllergyIntolerance allergy = new AllergyIntolerance();
+		allergy.setCode(new CodeableConcept().addCoding(new Coding().setCode("no-allergy-info").setSystem("http://hl7.org/fhir/uv/ips/CodeSystem/absent-unknown-uv-ips").setDisplay("No information about allergies")))
+			.setSubject(new Reference(patient))
+			.setClinicalStatus(new CodeableConcept().addCoding(new Coding().setCode("active").setSystem("http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical")))
+			.setId(IdDt.newRandomUuid());
+		return allergy;
+	}
+
+	private MedicationStatement noKnownMedications(Patient patient) {
+		MedicationStatement medication = new MedicationStatement();
+		medication.setMedicationCodeableConcept(new CodeableConcept().addCoding(new Coding().setCode("no-medication-info").setSystem("http://hl7.org/fhir/uv/ips/CodeSystem/absent-unknown-uv-ips").setDisplay("No information about medications")))
+			.setSubject(new Reference(patient))
+			.setStatus(MedicationStatement.MedicationStatementStatus.UNKNOWN)
+			// Need to set this like below
+			.setEffectivePeriod(new Period().addExtension().setUrl("http://hl7.org/fhir/StructureDefinition/data-absent-reason").setValue(new Date()))
+			.setId(IdDt.newRandomUuid());
+		return medication;
+	}
+
+	// "effectivePeriod": {
+	// 	 "extension": [
+	// 		  {
+	// 				"url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason",
+	// 				"valueCode": "not-applicable"
+	// 		  }
+	// 	 ]
+	// }
+
+	private Condition noKnownProblems(Patient patient) {
+		Condition condition = new Condition();
+		condition.setCode(new CodeableConcept().addCoding(new Coding().setCode("no-problem-info").setSystem("http://hl7.org/fhir/uv/ips/CodeSystem/absent-unknown-uv-ips").setDisplay("No information about problems")))
+			.setSubject(new Reference(patient))
+			.setClinicalStatus(new CodeableConcept().addCoding(new Coding().setCode("active").setSystem("http://terminology.hl7.org/CodeSystem/condition-clinical")))
+			.setId(IdDt.newRandomUuid());
+		return condition;
 	}
 
 	private static final List<String> PregnancyCodes = List.of("82810-3", "11636-8", "11637-6", "11638-4", "11639-2", "11640-0", "11612-9", "11613-7", "11614-5", "33065-4");
