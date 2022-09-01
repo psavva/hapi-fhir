@@ -43,12 +43,13 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Narrative;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.AllergyIntolerance;
+import org.hl7.fhir.r4.model.MedicationStatement;
+import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.utilities.xhtml.XhtmlNode;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.Composition.SectionComponent;
 import org.springframework.beans.factory.annotation.Autowired;
-
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -433,18 +434,21 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 		Patient patient = (Patient) resourceList.get(0);
 
 		if (iPSResourceMap.get(IPSSection.ALLERGY_INTOLERANCE) == null) {
-			List<Resource> allergyList = ListOf(noKnownAllergies(patient));
-			iPSResourceMap.put(IPSSection.ALLERGY_INTOLERANCE, allergyList);
+			AllergyIntolerance noKnownAllergies = noKnownAllergies(patient);
+			resourceList.add(noKnownAllergies);
+			iPSResourceMap.put(IPSSection.ALLERGY_INTOLERANCE, List.of(noKnownAllergies));
 		}
 
 		if (iPSResourceMap.get(IPSSection.MEDICATION_SUMMARY) == null) {
-			List<Resource> medicationList = ListOf(noKnownMedications(patient));
-			iPSResourceMap.put(IPSSection.MEDICATION_SUMMARY, medicationList);
+			MedicationStatement noKnownMedications = noKnownMedications(patient);
+			resourceList.add(noKnownMedications);
+			iPSResourceMap.put(IPSSection.MEDICATION_SUMMARY, List.of(noKnownMedications));
 		}
 
 		if (iPSResourceMap.get(IPSSection.PROBLEM_LIST) == null) {
-			List<Resource> problemList = List.of( noKnownProblems(patient));
-			iPSResourceMap.put(IPSSection.PROBLEM_LIST, problemList);
+			Condition noKnownProblems = noKnownProblems(patient);
+			resourceList.add(noKnownProblems);
+			iPSResourceMap.put(IPSSection.PROBLEM_LIST, List.of(noKnownProblems));
 		}
 
 		return iPSResourceMap;
@@ -453,7 +457,7 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 	private AllergyIntolerance noKnownAllergies(Patient patient) {
 		AllergyIntolerance allergy = new AllergyIntolerance();
 		allergy.setCode(new CodeableConcept().addCoding(new Coding().setCode("no-allergy-info").setSystem("http://hl7.org/fhir/uv/ips/CodeSystem/absent-unknown-uv-ips").setDisplay("No information about allergies")))
-			.setSubject(new Reference(patient))
+			.setPatient(new Reference(patient))
 			.setClinicalStatus(new CodeableConcept().addCoding(new Coding().setCode("active").setSystem("http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical")))
 			.setId(IdDt.newRandomUuid());
 		return allergy;
@@ -461,23 +465,14 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 
 	private MedicationStatement noKnownMedications(Patient patient) {
 		MedicationStatement medication = new MedicationStatement();
-		medication.setMedicationCodeableConcept(new CodeableConcept().addCoding(new Coding().setCode("no-medication-info").setSystem("http://hl7.org/fhir/uv/ips/CodeSystem/absent-unknown-uv-ips").setDisplay("No information about medications")))
+		// setMedicationCodeableConcept is not available
+		medication.setCategory(new CodeableConcept().addCoding(new Coding().setCode("no-medication-info").setSystem("http://hl7.org/fhir/uv/ips/CodeSystem/absent-unknown-uv-ips").setDisplay("No information about medications")))
 			.setSubject(new Reference(patient))
 			.setStatus(MedicationStatement.MedicationStatementStatus.UNKNOWN)
-			// Need to set this like below
-			.setEffectivePeriod(new Period().addExtension().setUrl("http://hl7.org/fhir/StructureDefinition/data-absent-reason").setValue(new Date()))
+			// .setEffective(new Period().addExtension().setUrl("http://hl7.org/fhir/StructureDefinition/data-absent-reason").setValue((new Coding().setCode("not-applicable"))))
 			.setId(IdDt.newRandomUuid());
 		return medication;
 	}
-
-	// "effectivePeriod": {
-	// 	 "extension": [
-	// 		  {
-	// 				"url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason",
-	// 				"valueCode": "not-applicable"
-	// 		  }
-	// 	 ]
-	// }
 
 	private Condition noKnownProblems(Patient patient) {
 		Condition condition = new Condition();
