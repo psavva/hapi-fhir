@@ -24,18 +24,11 @@
 	</issueManagement>
 
 	<distributionManagement>
-		<snapshotRepository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
 		<repository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+			<id>internal.repo</id>
+			<name>Github Repo</name>
+			<url>file:///Users/riobennin/work/hapi-fhir-ips</url>
 		</repository>
-		<site>
-			<id>git.server</id>
-			<url>scm:git:git@github.com:hapifhir/hapi-fhir.git</url>
-		</site>
 	</distributionManagement>
 
 	<scm>
@@ -45,6 +38,19 @@
 	</scm>
 
 	<repositories>
+	   <repository>
+            <id>ips-github-repo</id>
+            <name>Github Repo</name>
+            <url>https://raw.githbusercontent.com/CrossroadsLabs/hapi-fhir-ips/main/</url>
+            <releases>
+                    <enabled>true</enabled>
+                    <updatePolicy>always</updatePolicy>
+            </releases>
+            <snapshots>
+                    <enabled>true</enabled>
+                    <updatePolicy>always</updatePolicy>
+            </snapshots>
+      </repository>
 		<repository>
 			<id>oss-snapshot</id>
 			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
@@ -2085,6 +2091,9 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-deploy-plugin</artifactId>
 					<version>2.8.2</version>
+					<configuration>
+						<altDeploymentRepository>internal.repo::default::file:///Users/riobennin/work/hapi-fhir-ips</altDeploymentRepository>
+					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -3041,16 +3050,6 @@
 					<name>deployToSonatype</name>
 				</property>
 			</activation>
-			<distributionManagement>
-				<snapshotRepository>
-					<id>ossrh</id>
-					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-				</snapshotRepository>
-				<repository>
-					<id>ossrh</id>
-					<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-				</repository>
-			</distributionManagement>
 			<build>
 				<plugins>
 					<plugin>
