@@ -24,7 +24,12 @@
 	</issueManagement>
 
 	<distributionManagement>
-		<snapshotRepository>
+		<repository>
+	      <id>project.local</id>
+        	<name>project</name>
+        	<url>file:///Users/riobennin/work/hapi-fhir-jpaserver-starter/repo</url>
+		</repository>
+		<!-- <snapshotRepository>
 			<id>ossrh</id>
 			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 		</snapshotRepository>
@@ -35,7 +40,7 @@
 		<site>
 			<id>git.server</id>
 			<url>scm:git:git@github.com:hapifhir/hapi-fhir.git</url>
-		</site>
+		</site> -->
 	</distributionManagement>
 
 	<scm>
