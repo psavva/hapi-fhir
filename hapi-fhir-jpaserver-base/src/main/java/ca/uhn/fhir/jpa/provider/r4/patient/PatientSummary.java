@@ -186,27 +186,27 @@ public class PatientSummary {
 		Patient patient = (Patient) resourceList.get(0);
 
 		if (iPSResourceMap.get(IPSSection.ALLERGY_INTOLERANCE) == null) {
-			AllergyIntolerance noKnownAllergies = noKnownAllergies(patient);
-			resourceList.add(noKnownAllergies);
-			iPSResourceMap.put(IPSSection.ALLERGY_INTOLERANCE, List.of(noKnownAllergies));
+			AllergyIntolerance noInfoAllergies = noInfoAllergies(patient);
+			resourceList.add(noInfoAllergies);
+			iPSResourceMap.put(IPSSection.ALLERGY_INTOLERANCE, List.of(noInfoAllergies));
 		}
 
 		if (iPSResourceMap.get(IPSSection.MEDICATION_SUMMARY) == null) {
-			MedicationStatement noKnownMedications = noKnownMedications(patient);
-			resourceList.add(noKnownMedications);
-			iPSResourceMap.put(IPSSection.MEDICATION_SUMMARY, List.of(noKnownMedications));
+			MedicationStatement noInfoMedications = noInfoMedications(patient);
+			resourceList.add(noInfoMedications);
+			iPSResourceMap.put(IPSSection.MEDICATION_SUMMARY, List.of(noInfoMedications));
 		}
 
 		if (iPSResourceMap.get(IPSSection.PROBLEM_LIST) == null) {
-			Condition noKnownProblems = noKnownProblems(patient);
-			resourceList.add(noKnownProblems);
-			iPSResourceMap.put(IPSSection.PROBLEM_LIST, List.of(noKnownProblems));
+			Condition noInfoProblems = noInfoProblems(patient);
+			resourceList.add(noInfoProblems);
+			iPSResourceMap.put(IPSSection.PROBLEM_LIST, List.of(noInfoProblems));
 		}
 
 		return iPSResourceMap;
 	}
 
-	private static AllergyIntolerance noKnownAllergies(Patient patient) {
+	private static AllergyIntolerance noInfoAllergies(Patient patient) {
 		AllergyIntolerance allergy = new AllergyIntolerance();
 		allergy.setCode(new CodeableConcept().addCoding(new Coding().setCode("no-allergy-info").setSystem("http://hl7.org/fhir/uv/ips/CodeSystem/absent-unknown-uv-ips").setDisplay("No information about allergies")))
 			.setPatient(new Reference(patient))
@@ -215,7 +215,7 @@ public class PatientSummary {
 		return allergy;
 	}
 
-	private static MedicationStatement noKnownMedications(Patient patient) {
+	private static MedicationStatement noInfoMedications(Patient patient) {
 		MedicationStatement medication = new MedicationStatement();
 		// setMedicationCodeableConcept is not available
 		medication.setCategory(new CodeableConcept().addCoding(new Coding().setCode("no-medication-info").setSystem("http://hl7.org/fhir/uv/ips/CodeSystem/absent-unknown-uv-ips").setDisplay("No information about medications")))
@@ -226,7 +226,7 @@ public class PatientSummary {
 		return medication;
 	}
 
-	private static Condition noKnownProblems(Patient patient) {
+	private static Condition noInfoProblems(Patient patient) {
 		Condition condition = new Condition();
 		condition.setCode(new CodeableConcept().addCoding(new Coding().setCode("no-problem-info").setSystem("http://hl7.org/fhir/uv/ips/CodeSystem/absent-unknown-uv-ips").setDisplay("No information about problems")))
 			.setSubject(new Reference(patient))
