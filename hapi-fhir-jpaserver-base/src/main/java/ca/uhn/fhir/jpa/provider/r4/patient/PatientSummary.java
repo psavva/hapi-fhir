@@ -129,7 +129,6 @@ public class PatientSummary {
 		Bundle bundle = new Bundle();
 		bundle.setType(BundleType.DOCUMENT)
 			.setTimestamp(new Date())
-			.setLanguage("en-GB")
 			.setId(IdDt.newRandomUuid());		
 		return bundle;
 	}
