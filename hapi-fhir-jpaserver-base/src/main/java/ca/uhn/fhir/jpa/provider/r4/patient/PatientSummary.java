@@ -1,12 +1,7 @@
 package ca.uhn.fhir.jpa.provider.r4.patient;
 
-import ca.uhn.fhir.model.primitive.StringDt;
 import ca.uhn.fhir.model.primitive.IdDt;
-import ca.uhn.fhir.model.valueset.BundleTypeEnum;
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
-import org.hl7.fhir.r4.model.Coverage;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Condition;
 import org.hl7.fhir.r4.model.Composition;
@@ -14,23 +9,17 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleType;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.UnsignedIntType;
-import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Narrative;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.AllergyIntolerance;
 import org.hl7.fhir.r4.model.MedicationStatement;
-import org.hl7.fhir.r4.model.Period;
+// import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.ResourceType;
-import org.hl7.fhir.r4.model.Composition.SectionComponent;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.utilities.xhtml.XhtmlNode;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
