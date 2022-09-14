@@ -227,30 +227,48 @@ public class PatientSummary {
 	private static Boolean isObservationinSection(IPSSection iPSSection, Observation observation) {
 		Boolean inSection = false;
 		
-		// We'll to check this logic again but at least the types match so it compiles
 		switch(iPSSection) {
 			case VITAL_SIGNS:
-				if (observation.getCategory().get(0).getCoding().get(0).getCode() == "vital-signs") {
+				if (observation.hasCategory() && hasSpecficCode(observation.getCategory(), "vital-signs")) {
 					inSection = true;
 				}
 				break;
 			case PREGNANCY:
-				if (PregnancyCodes.contains(observation.getCode().getCoding().get(0).getCode())) {
+				if (observation.hasCode() && hasPregnancyCode(observation.getCode())) {
 					inSection = true;
 				}
 				break;
 			case SOCIAL_HISTORY:
-				if (observation.getCategory().get(0).getCoding().get(0).getCode() == "social-history") {
+				if (observation.hasCategory() && hasSpecficCode(observation.getCategory(), "social-history")) {
 					inSection = true;
 				}
 				break;
 			case DIAGNOSTIC_RESULTS:
-				if (observation.getCategory().get(0).getCoding().get(0).getCode() == "laboratory") {
+				if (observation.hasCategory() && hasSpecficCode(observation.getCategory(), "laboratory")) {
 					inSection = true;
 				}
 				break;
 			}
 		return inSection;
+	}
+
+
+	private static boolean hasPregnancyCode(CodeableConcept concept) {
+		for (Coding c : concept.getCoding()) {
+			if (PregnancyCodes.contains(c.getCode()))
+				return true;
+		}
+	   return false;
+	}
+
+	private static boolean hasSpecficCode(List<CodeableConcept> ccList, String code) {
+	   for (CodeableConcept concept : ccList) {
+			for (Coding c : concept.getCoding()) {
+				if (code.equals(c.getCode()))
+					return true;
+			}
+		}
+	   return false;
 	}
 
 	private static Composition.SectionComponent createSection(Map<String, String> text, List<Resource> resources) {
