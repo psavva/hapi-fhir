@@ -109,16 +109,16 @@ public class PatientSummary {
 	public static Bundle buildFromSearch(IBundleProvider searchSet, FhirContext ctx) {	
 		List<Resource> searchResources = createResourceList(searchSet.getAllResources());
 		Patient patient = (Patient) searchResources.get(0);
-		HashMap<IPSSection, List<Resource>> initialHashedReferences = hashReferences(searchResources);
-		List<Resource> expandedResources = addNoInfoResources(searchResources, initialHashedReferences, patient);
-		HashMap<IPSSection, List<Resource>> hashedReferences = hashReferences(expandedResources);
-		HashMap<IPSSection, List<Resource>> filteredReferences = filterReferences(hashedReferences);
-		List<Resource> resources = pruneResources(expandedResources, filteredReferences);
-		HashMap<IPSSection, String> hashedNarratives = createNarratives(filteredReferences, resources, ctx);
+		HashMap<IPSSection, List<Resource>> initialHashedPrimaries = hashPrimaries(searchResources);
+		List<Resource> expandedResources = addNoInfoResources(searchResources, initialHashedPrimaries, patient);
+		HashMap<IPSSection, List<Resource>> hashedPrimaries = hashPrimaries(expandedResources);
+		HashMap<IPSSection, List<Resource>> filteredPrimaries = filterPrimaries(hashedPrimaries);
+		List<Resource> resources = pruneResources(expandedResources, filteredPrimaries);
+		HashMap<IPSSection, String> hashedNarratives = createNarratives(filteredPrimaries, resources, ctx);
 
 		Bundle bundle = createIPSBundle();
 		Composition composition = createIPSComposition(patient);
-		composition = addIPSSections(composition, hashedReferences, hashedNarratives);
+		composition = addIPSSections(composition, hashedPrimaries, hashedNarratives);
 		bundle.addEntry().setResource(composition).setFullUrl(composition.getIdElement().getValue());
 		for (Resource resource : resources) {
 			bundle.addEntry().setResource(resource).setFullUrl(resource.getIdElement().getValue());
@@ -142,7 +142,7 @@ public class PatientSummary {
 		return resourceList;
 	}
 
-	private static HashMap<IPSSection, List<Resource>> hashReferences(List<Resource> resourceList) {
+	private static HashMap<IPSSection, List<Resource>> hashPrimaries(List<Resource> resourceList) {
 		HashMap<IPSSection, List<Resource>> iPSResourceMap = new HashMap<IPSSection, List<Resource>>();
 
 		for (Resource resource : resourceList) {
@@ -161,19 +161,19 @@ public class PatientSummary {
 		return iPSResourceMap;
 	}
 
-	private static List<Resource> addNoInfoResources(List<Resource> resources,  HashMap<IPSSection, List<Resource>> hashedReferences, Patient patient) {
+	private static List<Resource> addNoInfoResources(List<Resource> resources,  HashMap<IPSSection, List<Resource>> hashedPrimaries, Patient patient) {
 
-		if (hashedReferences.get(IPSSection.ALLERGY_INTOLERANCE) == null) {
+		if (hashedPrimaries.get(IPSSection.ALLERGY_INTOLERANCE) == null) {
 			AllergyIntolerance noInfoAllergies = noInfoAllergies(patient);
 			resources.add(noInfoAllergies);
 		}
 
-		if (hashedReferences.get(IPSSection.MEDICATION_SUMMARY) == null) {
+		if (hashedPrimaries.get(IPSSection.MEDICATION_SUMMARY) == null) {
 			MedicationStatement noInfoMedications = noInfoMedications(patient);
 			resources.add(noInfoMedications);
 		}
 
-		if (hashedReferences.get(IPSSection.PROBLEM_LIST) == null) {
+		if (hashedPrimaries.get(IPSSection.PROBLEM_LIST) == null) {
 			Condition noInfoProblems = noInfoProblems(patient);
 			resources.add(noInfoProblems);
 		}
@@ -181,35 +181,35 @@ public class PatientSummary {
 		return resources;
 	}
 
-	private static HashMap<IPSSection, List<Resource>> filterReferences(HashMap<IPSSection, List<Resource>> hashedReferences) {
-		HashMap<IPSSection, List<Resource>> filteredReferences = new HashMap<IPSSection, List<Resource>>();
-		for ( IPSSection section : hashedReferences.keySet() ) {
+	private static HashMap<IPSSection, List<Resource>> filterPrimaries(HashMap<IPSSection, List<Resource>> hashedPrimaries) {
+		HashMap<IPSSection, List<Resource>> filteredPrimaries = new HashMap<IPSSection, List<Resource>>();
+		for ( IPSSection section : hashedPrimaries.keySet() ) {
 			List<Resource> filteredList = new ArrayList<Resource>();
-			for (Resource resource : hashedReferences.get(section)) {
+			for (Resource resource : hashedPrimaries.get(section)) {
 				if (passesFilter(section, resource)) {
 					filteredList.add(resource);
 				}
 			}
 			if (filteredList.size() > 0) {
-				filteredReferences.put(section, filteredList);
+				filteredPrimaries.put(section, filteredList);
 			}
 		}
-		return filteredReferences;
+		return filteredPrimaries;
 	}
 
-	private static List<Resource> pruneResources(List<Resource> resources,  HashMap<IPSSection, List<Resource>> hashedReferences) {
+	private static List<Resource> pruneResources(List<Resource> resources,  HashMap<IPSSection, List<Resource>> hashedPrimaries) {
 		// Stubbed out for now
-		// hashedReferences.values().stream().flatMap(List::stream).collect(Collectors.toList());
+		// hashedPrimaries.values().stream().flatMap(List::stream).collect(Collectors.toList());
 
 		return resources;
 	}
 
-	private static HashMap<IPSSection, String> createNarratives(HashMap<IPSSection, List<Resource>> hashedReferences, List<Resource> resources, FhirContext ctx) {
+	private static HashMap<IPSSection, String> createNarratives(HashMap<IPSSection, List<Resource>> hashedPrimaries, List<Resource> resources, FhirContext ctx) {
 		HashMap<IPSSection, String> hashedNarratives = new HashMap<IPSSection, String>();
 
-		for (IPSSection section : hashedReferences.keySet()) {
+		for (IPSSection section : hashedPrimaries.keySet()) {
 			// This method msy need to also take in the resources list for things such as medications and devices.
-			String narrative = createSectionNarrative(section, hashedReferences.get(section), ctx);
+			String narrative = createSectionNarrative(section, hashedPrimaries.get(section), ctx);
 			hashedNarratives.put(section, narrative);
 		}
 
@@ -310,11 +310,11 @@ public class PatientSummary {
 		return composition;
 	}
 
-	private static Composition addIPSSections(Composition composition, HashMap<IPSSection, List<Resource>> hashedReferences, HashMap<IPSSection, String> hashedNarratives) {
+	private static Composition addIPSSections(Composition composition, HashMap<IPSSection, List<Resource>> hashedPrimaries, HashMap<IPSSection, String> hashedNarratives) {
 		// Add sections
 		for (IPSSection iPSSection : IPSSection.values()) {
-			if (hashedReferences.get(iPSSection) != null && hashedReferences.get(iPSSection).size() > 0) {
-				Composition.SectionComponent section = createSection(SectionText.get(iPSSection), hashedReferences.get(iPSSection), hashedNarratives.get(iPSSection));
+			if (hashedPrimaries.get(iPSSection) != null && hashedPrimaries.get(iPSSection).size() > 0) {
+				Composition.SectionComponent section = createSection(SectionText.get(iPSSection), hashedPrimaries.get(iPSSection), hashedNarratives.get(iPSSection));
 				composition.addSection(section);
 			}
 		}
