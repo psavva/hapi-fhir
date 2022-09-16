@@ -119,9 +119,9 @@ public class PatientSummary {
 		Bundle bundle = createIPSBundle();
 		Composition composition = createIPSComposition(patient);
 		composition = addIPSSections(composition, hashedPrimaries, hashedNarratives);
-		bundle.addEntry().setResource(composition).setFullUrl(composition.getIdElement().getValue());
+		bundle.addEntry().setResource(composition).setFullUrl(formatAsUrn(composition));
 		for (Resource resource : resources) {
-			bundle.addEntry().setResource(resource).setFullUrl(resource.getIdElement().getValue());
+			bundle.addEntry().setResource(resource).setFullUrl(formatAsUrn(resource));
 		}
 		return bundle;
 	}
@@ -422,4 +422,11 @@ public class PatientSummary {
 	   return false;
 	}
 	
+	private static String formatAsUrn(Resource resource) {
+		if (resource.getIdElement().isUrn()) {
+			return resource.getId();
+		} else {
+			return "urn:uuid:" + resource.getIdElement().getIdPart();
+		}
+	}
 }
