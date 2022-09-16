@@ -19,6 +19,8 @@ import org.hl7.fhir.r4.model.AllergyIntolerance;
 import org.hl7.fhir.r4.model.MedicationStatement;
 import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.Observation.ObservationStatus;
+import org.hl7.fhir.r4.model.Organization;
+import org.hl7.fhir.r4.model.Address;
 // import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.instance.model.api.IBaseResource;
@@ -117,12 +119,14 @@ public class PatientSummary {
 		HashMap<IPSSection, String> hashedNarratives = createNarratives(filteredPrimaries, resources, ctx);
 
 		Bundle bundle = createIPSBundle();
-		Composition composition = createIPSComposition(patient);
+		Organization author = createAuthor();
+		Composition composition = createIPSComposition(patient, author);
 		composition = addIPSSections(composition, hashedPrimaries, hashedNarratives);
 		bundle.addEntry().setResource(composition).setFullUrl(formatAsUrn(composition));
 		for (Resource resource : resources) {
 			bundle.addEntry().setResource(resource).setFullUrl(formatAsUrn(resource));
 		}
+		bundle.addEntry().setResource(author).setFullUrl(formatAsUrn(author));
 		return bundle;
 	}
 
@@ -132,6 +136,19 @@ public class PatientSummary {
 			.setTimestamp(new Date())
 			.setId(IdDt.newRandomUuid());		
 		return bundle;
+	}
+
+	private static Organization createAuthor() {
+		Organization organization = new Organization();
+		organization.setName("More Informatics, Inc")
+			.setAddress(List.of( new Address()
+				.addLine("59 Washington St.")
+				.setCity("Wellesley")
+				.setState("MA")
+				.setPostalCode("02481")
+				.setCountry("USA")))
+			.setId(IdDt.newRandomUuid());
+		return organization;
 	}
 
 	private static List<Resource> createResourceList(List<IBaseResource> iBaseResourceList) {
@@ -293,7 +310,7 @@ public class PatientSummary {
 		return false;
 	}
 
-	private static Composition createIPSComposition(Patient patient) {
+	private static Composition createIPSComposition(Patient patient, Organization author) {
 		Composition composition = new Composition();
 		composition.setStatus(Composition.CompositionStatus.FINAL)
 			.setType(new CodeableConcept().addCoding(new Coding().setCode("60591-5").setSystem("http://loinc.org").setDisplay("Patient Summary Document")))
@@ -301,8 +318,7 @@ public class PatientSummary {
 			.setDate(new Date())
 			.setTitle("Patient Summary as of " + DateTimeFormatter.ofPattern("MM/dd/yyyy").format(LocalDate.now()))
 			.setConfidentiality(Composition.DocumentConfidentiality.N)
-			// Should one of these be set to our system?
-			// .setAuthor(List.of(new Reference(practitioner)))
+			.setAuthor(List.of(new Reference(author)))
 			// .setCustodian(new Reference(organization))
 			// .setRelatesTo(List.of(new Composition.RelatedComponent().setType(Composition.RelatedTypeEnum.SUBJECT).setTarget(new Reference(patient))))
 			// .setEvent(List.of(new Composition.EventComponent().setCode(new CodeableConcept().addCoding(new Coding().setCode("PCPR").setSystem("http://terminology.hl7.org/CodeSystem/v3-ActClass").setDisplay("")))))
