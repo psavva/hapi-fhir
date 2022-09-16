@@ -1,6 +1,8 @@
 package ca.uhn.fhir.jpa.provider.r4.patient;
 
+import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.model.primitive.IdDt;
+import ca.uhn.fhir.narrative.DefaultThymeleafNarrativeGenerator;
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Condition;
@@ -15,10 +17,11 @@ import org.hl7.fhir.r4.model.Narrative;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.AllergyIntolerance;
 import org.hl7.fhir.r4.model.MedicationStatement;
+import org.hl7.fhir.r4.model.Meta;
+import org.hl7.fhir.r4.model.Observation.ObservationStatus;
 // import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.instance.model.api.IBaseResource;
-import org.hl7.fhir.utilities.xhtml.XhtmlNode;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -103,14 +106,24 @@ public class PatientSummary {
 
 	private static final List<String> PregnancyCodes = List.of("82810-3", "11636-8", "11637-6", "11638-4", "11639-2", "11640-0", "11612-9", "11613-7", "11614-5", "33065-4");
 
-	public static Bundle buildFromSearch(IBundleProvider searchSet) {
+	public static Bundle buildFromSearch(IBundleProvider searchSet, FhirContext ctx) {	
+		List<Resource> searchResources = createResourceList(searchSet.getAllResources());
+		Patient patient = (Patient) searchResources.get(0);
+		HashMap<IPSSection, List<Resource>> initialHashedReferences = hashReferences(searchResources);
+		List<Resource> expandedResources = addNoInfoResources(searchResources, initialHashedReferences, patient);
+		HashMap<IPSSection, List<Resource>> hashedReferences = hashReferences(expandedResources);
+		HashMap<IPSSection, List<Resource>> filteredReferences = filterReferences(hashedReferences);
+		List<Resource> resources = pruneResources(expandedResources, filteredReferences);
+		HashMap<IPSSection, String> hashedNarratives = createNarratives(filteredReferences, resources, ctx);
+
 		Bundle bundle = createIPSBundle();
-		List<Resource> resourceList = createResourceList(searchSet.getAllResources());
-		Composition composition = createIPSComposition(resourceList);
+		Composition composition = createIPSComposition(patient);
+		composition = addIPSSections(composition, hashedReferences, hashedNarratives);
 		bundle.addEntry().setResource(composition);
-		for (Resource resource : resourceList) {
+		for (Resource resource : resources) {
 			bundle.addEntry().setResource(resource);
 		}
+		// DefaultThymeleafNarrativeGenerator generator = new DefaultThymeleafNarrativeGenerator();
 		return bundle;
 	}
 
@@ -130,33 +143,7 @@ public class PatientSummary {
 		return resourceList;
 	}
 
-	private static Composition createIPSComposition(List<Resource> resourceList) {
-		Composition composition = new Composition();
-		Patient patient = (Patient) resourceList.get(0);
-		composition.setStatus(Composition.CompositionStatus.FINAL)
-			.setType(new CodeableConcept().addCoding(new Coding().setCode("60591-5").setSystem("http://loinc.org").setDisplay("Patient Summary Document")))
-			.setSubject(new Reference(patient))
-			.setDate(new Date())
-			.setTitle("Patient Summary as of " + DateTimeFormatter.ofPattern("MM/dd/yyyy").format(LocalDate.now()))
-			.setConfidentiality(Composition.DocumentConfidentiality.N)
-			// Should one of these be set to our system?
-			// .setAuthor(List.of(new Reference(practitioner)))
-			// .setCustodian(new Reference(organization))
-			// .setRelatesTo(List.of(new Composition.RelatedComponent().setType(Composition.RelatedTypeEnum.SUBJECT).setTarget(new Reference(patient))))
-			// .setEvent(List.of(new Composition.EventComponent().setCode(new CodeableConcept().addCoding(new Coding().setCode("PCPR").setSystem("http://terminology.hl7.org/CodeSystem/v3-ActClass").setDisplay("")))))
-			.setId(IdDt.newRandomUuid());
-
-		HashMap<IPSSection, List<Resource>> sortedResources = createIPSResourceHashMap(resourceList);
-		for (IPSSection iPSSection : IPSSection.values()) {
-			if (sortedResources.get(iPSSection) != null && sortedResources.get(iPSSection).size() > 0) {
-				Composition.SectionComponent section = createSection(SectionText.get(iPSSection), sortedResources.get(iPSSection));
-				composition.addSection(section);
-			}
-		}
-		return composition;
-	}
-
-	private static HashMap<IPSSection, List<Resource>> createIPSResourceHashMap(List<Resource> resourceList) {
+	private static HashMap<IPSSection, List<Resource>> hashReferences(List<Resource> resourceList) {
 		HashMap<IPSSection, List<Resource>> iPSResourceMap = new HashMap<IPSSection, List<Resource>>();
 
 		for (Resource resource : resourceList) {
@@ -172,27 +159,193 @@ public class PatientSummary {
 			}
 		}
 
-		Patient patient = (Patient) resourceList.get(0);
-
-		if (iPSResourceMap.get(IPSSection.ALLERGY_INTOLERANCE) == null) {
-			AllergyIntolerance noInfoAllergies = noInfoAllergies(patient);
-			resourceList.add(noInfoAllergies);
-			iPSResourceMap.put(IPSSection.ALLERGY_INTOLERANCE, List.of(noInfoAllergies));
-		}
-
-		if (iPSResourceMap.get(IPSSection.MEDICATION_SUMMARY) == null) {
-			MedicationStatement noInfoMedications = noInfoMedications(patient);
-			resourceList.add(noInfoMedications);
-			iPSResourceMap.put(IPSSection.MEDICATION_SUMMARY, List.of(noInfoMedications));
-		}
-
-		if (iPSResourceMap.get(IPSSection.PROBLEM_LIST) == null) {
-			Condition noInfoProblems = noInfoProblems(patient);
-			resourceList.add(noInfoProblems);
-			iPSResourceMap.put(IPSSection.PROBLEM_LIST, List.of(noInfoProblems));
-		}
-
 		return iPSResourceMap;
+	}
+
+	private static List<Resource> addNoInfoResources(List<Resource> resources,  HashMap<IPSSection, List<Resource>> hashedReferences, Patient patient) {
+
+		if (hashedReferences.get(IPSSection.ALLERGY_INTOLERANCE) == null) {
+			AllergyIntolerance noInfoAllergies = noInfoAllergies(patient);
+			resources.add(noInfoAllergies);
+		}
+
+		if (hashedReferences.get(IPSSection.MEDICATION_SUMMARY) == null) {
+			MedicationStatement noInfoMedications = noInfoMedications(patient);
+			resources.add(noInfoMedications);
+		}
+
+		if (hashedReferences.get(IPSSection.PROBLEM_LIST) == null) {
+			Condition noInfoProblems = noInfoProblems(patient);
+			resources.add(noInfoProblems);
+		}
+
+		return resources;
+	}
+
+	private static HashMap<IPSSection, List<Resource>> filterReferences(HashMap<IPSSection, List<Resource>> hashedReferences) {
+		HashMap<IPSSection, List<Resource>> filteredReferences = new HashMap<IPSSection, List<Resource>>();
+		for ( IPSSection section : hashedReferences.keySet() ) {
+			List<Resource> filteredList = new ArrayList<Resource>();
+			for (Resource resource : hashedReferences.get(section)) {
+				if (passesFilter(section, resource)) {
+					filteredList.add(resource);
+				}
+			}
+			if (filteredList.size() > 0) {
+				filteredReferences.put(section, filteredList);
+			}
+		}
+		return filteredReferences;
+	}
+
+	private static List<Resource> pruneResources(List<Resource> resources,  HashMap<IPSSection, List<Resource>> hashedReferences) {
+		// Stubbed out for now
+		// hashedReferences.values().stream().flatMap(List::stream).collect(Collectors.toList());
+
+		return resources;
+	}
+
+	private static HashMap<IPSSection, String> createNarratives(HashMap<IPSSection, List<Resource>> hashedReferences, List<Resource> resources, FhirContext ctx) {
+		HashMap<IPSSection, String> hashedNarratives = new HashMap<IPSSection, String>();
+
+		for (IPSSection section : hashedReferences.keySet()) {
+			// This method msy need to also take in the resources list for things such as medications and devices.
+			String narrative = createSectionNarrative(section, hashedReferences.get(section), ctx);
+			hashedNarratives.put(section, narrative);
+		}
+
+		return hashedNarratives;
+	}
+
+	private static String createSectionNarrative(IPSSection iPSSection, List<Resource> resources, FhirContext ctx) {
+		// // Use the narrative generator
+		// ctx.setNarrativeGenerator(new DefaultThymeleafNarrativeGenerator());
+		// // Create a bundle to hold the resources
+		// Bundle bundle = new Bundle();
+		// Composition composition = new Composition();
+
+		// bundle.addEntry().setResource(composition);
+		// for (Resource resource : resources) {
+		// 	bundle.addEntry().setResource(resource);
+		// }
+
+		// Need to look up profile for each section
+		// String profile = "http://hl7.org/fhir/uv/ips/StructureDefinition/AllergyIntolerance-uv-ips"
+		// bundle.setMeta(new Meta().addProfile(profile));
+
+		// // Generate the narrative
+		// DefaultThymeleafNarrativeGenerator generator = new DefaultThymeleafNarrativeGenerator();
+		// generator.populateResourceNarrative(ctx, bundle);
+		
+		// // Get the narrative
+		// String narrative = composition.getText().getDivAsString();
+		
+		// Stubbed out for now
+		String narrative = "<div>Narrative</div>";
+		
+		return narrative;
+	}
+
+	private static Boolean passesFilter(IPSSection section, Resource resource) {
+		if (section == IPSSection.ALLERGY_INTOLERANCE) {
+			return true;
+		}
+		if (section == IPSSection.MEDICATION_SUMMARY) {
+			return true;
+		}
+		if (section == IPSSection.PROBLEM_LIST) {
+			return true;
+		}
+		if (section == IPSSection.IMMUNIZATIONS) {
+			return true;
+		}
+		if (section == IPSSection.PROCEDURES) {
+			return true;
+		}
+		if (section == IPSSection.MEDICAL_DEVICES) {
+			return true;
+		}
+		if (section == IPSSection.DIAGNOSTIC_RESULTS) {
+			return true;
+		}
+		if (section == IPSSection.VITAL_SIGNS) {
+			return true;
+		}
+		if (section == IPSSection.PREGNANCY) {
+			Observation observation = (Observation) resource;
+			return (observation.getStatus() == ObservationStatus.PRELIMINARY);
+		}
+		if (section == IPSSection.SOCIAL_HISTORY) {
+			Observation observation = (Observation) resource;
+			return (observation.getStatus() == ObservationStatus.PRELIMINARY);
+		}
+		// if (section == IPSSection.ILLNESS_HISTORY) {
+		// 	return true;
+		// }
+		if (section == IPSSection.FUNCTIONAL_STATUS) {
+			return true;
+		}
+		if (section == IPSSection.PLAN_OF_CARE) {
+			return true;
+		}
+		if (section == IPSSection.ADVANCE_DIRECTIVES) {
+			return true;
+		}
+		return false;
+	}
+
+	private static Composition createIPSComposition(Patient patient) {
+		Composition composition = new Composition();
+		composition.setStatus(Composition.CompositionStatus.FINAL)
+			.setType(new CodeableConcept().addCoding(new Coding().setCode("60591-5").setSystem("http://loinc.org").setDisplay("Patient Summary Document")))
+			.setSubject(new Reference(patient))
+			.setDate(new Date())
+			.setTitle("Patient Summary as of " + DateTimeFormatter.ofPattern("MM/dd/yyyy").format(LocalDate.now()))
+			.setConfidentiality(Composition.DocumentConfidentiality.N)
+			// Should one of these be set to our system?
+			// .setAuthor(List.of(new Reference(practitioner)))
+			// .setCustodian(new Reference(organization))
+			// .setRelatesTo(List.of(new Composition.RelatedComponent().setType(Composition.RelatedTypeEnum.SUBJECT).setTarget(new Reference(patient))))
+			// .setEvent(List.of(new Composition.EventComponent().setCode(new CodeableConcept().addCoding(new Coding().setCode("PCPR").setSystem("http://terminology.hl7.org/CodeSystem/v3-ActClass").setDisplay("")))))
+			.setId(IdDt.newRandomUuid());
+		return composition;
+	}
+
+	private static Composition addIPSSections(Composition composition, HashMap<IPSSection, List<Resource>> hashedReferences, HashMap<IPSSection, String> hashedNarratives) {
+		// Add sections
+		for (IPSSection iPSSection : IPSSection.values()) {
+			if (hashedReferences.get(iPSSection) != null && hashedReferences.get(iPSSection).size() > 0) {
+				Composition.SectionComponent section = createSection(SectionText.get(iPSSection), hashedReferences.get(iPSSection), hashedNarratives.get(iPSSection));
+				composition.addSection(section);
+			}
+		}
+		return composition;
+	}
+
+	private static Composition.SectionComponent createSection(Map<String, String> text, List<Resource> resources, String narrative) {
+		Composition.SectionComponent section = new Composition.SectionComponent();
+		
+		section.setTitle(text.get("title"))
+			.setCode(new CodeableConcept().addCoding(new Coding().setSystem("http://loinc.org")
+			.setCode(text.get("code")).setDisplay(text.get("display"))))
+			.getText().setStatus(Narrative.NarrativeStatus.GENERATED).setDivAsString(narrative);
+		
+		HashMap<ResourceType, List<Resource>> resourcesByType = new HashMap<ResourceType, List<Resource>>();
+		
+		for (Resource resource : resources) {
+			if ( !resourcesByType.containsKey(resource.getResourceType()) ) {
+				resourcesByType.put(resource.getResourceType(), new ArrayList<Resource>());
+			}
+			resourcesByType.get(resource.getResourceType()).add(resource);
+		}
+		
+		for (List<Resource> resourceList : resourcesByType.values()) {	
+			for (Resource resource : resourceList) {
+				section.addEntry(new Reference(resource));
+			}
+		}
+
+		return section;
 	}
 
 	private static AllergyIntolerance noInfoAllergies(Patient patient) {
@@ -252,7 +405,6 @@ public class PatientSummary {
 		return inSection;
 	}
 
-
 	private static boolean hasPregnancyCode(CodeableConcept concept) {
 		for (Coding c : concept.getCoding()) {
 			if (PregnancyCodes.contains(c.getCode()))
@@ -269,30 +421,6 @@ public class PatientSummary {
 			}
 		}
 	   return false;
-	}
-
-	private static Composition.SectionComponent createSection(Map<String, String> text, List<Resource> resources) {
-		Composition.SectionComponent section = new Composition.SectionComponent();
-		section.setTitle(text.get("title"))
-			.setCode(new CodeableConcept().addCoding(new Coding().setSystem("http://loinc.org").setCode(text.get("code")).setDisplay(text.get("display"))))
-			.setText(new Narrative().setStatus(Narrative.NarrativeStatus.GENERATED).setDiv(new XhtmlNode().setValue("<div>Holder for future narrative</div>")));
-		
-		HashMap<ResourceType, List<Resource>> resourcesByType = new HashMap<ResourceType, List<Resource>>();
-		for (Resource resource : resources) {
-			if ( !resourcesByType.containsKey(resource.getResourceType()) ) {
-				resourcesByType.put(resource.getResourceType(), new ArrayList<Resource>());
-			}
-			resourcesByType.get(resource.getResourceType()).add(resource);
-		}
-		for (List<Resource> resourceList : resourcesByType.values()) {
-			// Cannot figure out how to add more than one entry per section once we have the method we can use this loop to do so
-			// List<Reference> entry = new ArrayList<Reference>();	
-			for (Resource resource : resourceList) {
-				section.addEntry(new Reference(resource));
-			}
-		}
-
-		return section;
 	}
 	
 }

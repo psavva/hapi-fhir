@@ -221,7 +221,10 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 		startRequest(theServletRequest);
 		try {
 			return (
-				PatientSummary.buildFromSearch(((IFhirResourceDaoPatient<Patient>) getDao()).patientInstanceSummary(theServletRequest, theId, theCount, theOffset, theLastUpdated, theSortSpec, toStringAndList(theContent), toStringAndList(theNarrative), toStringAndList(theFilter), toStringAndList(theTypes), theRequestDetails))
+				PatientSummary.buildFromSearch(
+					((IFhirResourceDaoPatient<Patient>) getDao()).patientInstanceSummary(theServletRequest, theId, theCount, theOffset, theLastUpdated, theSortSpec, toStringAndList(theContent), toStringAndList(theNarrative), toStringAndList(theFilter), toStringAndList(theTypes), theRequestDetails),
+					getContext()
+					)
 				);
 		} finally {
 			endRequest(theServletRequest);
@@ -277,7 +280,10 @@ public class BaseJpaResourceProviderPatientR4 extends JpaResourceProviderR4<Pati
 		startRequest(theServletRequest);
 		try {
 			return (
-				PatientSummary.buildFromSearch(((IFhirResourceDaoPatient<Patient>) getDao()).patientTypeSummary(theServletRequest, theCount, theOffset, theLastUpdated, theSortSpec, toStringAndList(theContent), toStringAndList(theNarrative), toStringAndList(theFilter), toStringAndList(theTypes), theRequestDetails, toFlattenedPatientIdTokenParamList(theId)))
+				PatientSummary.buildFromSearch(
+					((IFhirResourceDaoPatient<Patient>) getDao()).patientTypeSummary(theServletRequest, theCount, theOffset, theLastUpdated, theSortSpec, toStringAndList(theContent), toStringAndList(theNarrative), toStringAndList(theFilter), toStringAndList(theTypes), theRequestDetails, toFlattenedPatientIdTokenParamList(theId)),
+					getContext()
+					)
 				);
 		} finally {
 			endRequest(theServletRequest);
