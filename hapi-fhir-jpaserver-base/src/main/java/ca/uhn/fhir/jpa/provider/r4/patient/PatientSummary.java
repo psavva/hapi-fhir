@@ -119,11 +119,10 @@ public class PatientSummary {
 		Bundle bundle = createIPSBundle();
 		Composition composition = createIPSComposition(patient);
 		composition = addIPSSections(composition, hashedReferences, hashedNarratives);
-		bundle.addEntry().setResource(composition);
+		bundle.addEntry().setResource(composition).setFullUrl(composition.getIdElement().getValue());
 		for (Resource resource : resources) {
-			bundle.addEntry().setResource(resource);
+			bundle.addEntry().setResource(resource).setFullUrl(resource.getIdElement().getValue());
 		}
-		// DefaultThymeleafNarrativeGenerator generator = new DefaultThymeleafNarrativeGenerator();
 		return bundle;
 	}
 
