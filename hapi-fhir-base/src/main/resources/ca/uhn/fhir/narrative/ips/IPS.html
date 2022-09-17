@@ -11,7 +11,7 @@ a browser.
 <!--*/-->
 
 <div th:with="section=${#strings.arraySplit(resource.meta.profile.get(0).value, '/')[#arrays.length(#strings.arraySplit(resource.meta.profile.get(0).value, '/')) - 1]}">
-	<div th:replace=" :: ${section} (entryList=${resource.entry})">Page Content</div>
+	<div th:replace=" :: ${#strings.arraySplit(section, '-')[0]} (entryList=${resource.entry})">Page Content</div>
 </div>
 
 <!--/*-->
@@ -19,171 +19,477 @@ a browser.
 </html>
 <!--*/-->
 
-<!--/* AllergiesAndIntolerances-uv-ips */-->
-<table th:fragment="AllergiesAndIntolerances-uv-ips (entryList)" class="hapiPropertyTable">
-	<tbody>
-		<th:block th:each="entry,iter : ${entryList}">
-			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'AllergiesAndIntolerances-' + ${iter.index}">
-				<td>Type</td>
-				<td th:text="${entry.resource.resourceType}"></td>
+<!--/* AllergiesAndIntolerances */-->
+<!-- 
+Allergen: AllergyIntolerance.code.text || AllergyIntolerance.code.coding[x].display
+Status: AllergyIntolerance.clinicalStatus.coding[x].display
+Category: AllergyIntolerance.code[x]
+Reaction: AllergyIntolerance.reaction.manifestation.text || AllergyIntolerance.reaction.manifestation.coding[x].display
+Severity: AllergyIntolerance.reaction.severity.code
+Comments: AllergyIntolerance.note[x].text (display all notes separated by <br /> )
+Onset: AllergyIntolerance.onsetDateTime
+ -->
+<div th:fragment="AllergiesAndIntolerances (entryList)">
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Allergen</th> 
+				<th>Status</th>
+				<th>Category</th>
+				<th>Reaction</th>
+				<th>Severity</th>
+				<th>Comments</th>
+				<th>Onset</th>
 			</tr>
-		</th:block>
-	</tbody>
-</table>
+		</thead>
+		<tbody>	
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'AllergiesAndIntolerances-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
+</div>
 
-<!--/* MedicationSummary-uv-ips */-->
-<table th:fragment="MedicationSummary-uv-ips (entryList)" class="hapiPropertyTable">
-	<tbody>
-		<th:block th:each="entry,iter : ${entryList}">
-			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'MedicationSummary-' + ${iter.index}">
-				<td>Type</td>
-				<td th:text="${entry.resource.resourceType}"></td>
+<!--/* MedicationSummary */-->
+<!-- 
+Table 1 MedicationRequest
+Medication: MedicationRequest.medicationCodeableConcept.coding[x].display || Medication.code.coding.text || Medication.code.coding.code[x].display
+Status: MedicationRequest.status.display
+Route: MedicationRequest.dosageInstruction[x].route.coding[x].display
+Sig: MedicationRequest.dosageInstruction[x].text (display all sigs separated by <br /> )
+Comments: MedicationRequest.note[x].text (display all notes separated by <br /> )
+Authored Date: MedicationRequest.DateTime
+ 
+Table 2 MedicationStatement
+Medication: MedicationStatement.medicationCodeableConcept.coding[x].display || Medication.code.coding.text || Medication.code.coding.code[x].display
+Status: MedicationStatement.status.display
+Route: MedicationStatement.dosage[x].route.coding[x].display
+Sig: MedicationStatement.dosage [x].text (display all sigs separated by <br /> )
+Date:  MedicationStatement.effectiveDateTime
+ -->
+<div th:fragment="MedicationSummary (entryList)" th:with="section='MedicationSummary'">
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Medication</th> 
+				<th>Status</th>
+				<th>Route</th>
+				<th>Sig</th>
+				<th>Comments</th>
+				<th>Comments</th>
+				<th>Authored Date</th>
 			</tr>
-		</th:block>
-	</tbody>
-</table>
+		</thead>
+		<tbody>
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
 
-<!--/* ProblemList-uv-ips */-->
-<table th:fragment="ProblemList-uv-ips (entryList)" class="hapiPropertyTable">
-	<tbody>
-		<th:block th:each="entry,iter : ${entryList}">
-			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'ProblemList-' + ${iter.index}">
-				<td>Type</td>
-				<td th:text="${entry.resource.resourceType}"></td>
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Medication</th> 
+				<th>Status</th>
+				<th>Route</th>
+				<th>Sig</th>
+				<th>Date</th>
 			</tr>
-		</th:block>
-	</tbody>
-</table>
+		</thead>
+		<tbody>
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
 
-<!--/* Immunizations-uv-ips */-->
-<table th:fragment="Immunizations-uv-ips (entryList)" class="hapiPropertyTable">
-	<tbody>
-		<th:block th:each="entry,iter : ${entryList}">
-			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'Immunizations-' + ${iter.index}">
-				<td>Type</td>
-				<td th:text="${entry.resource.resourceType}"></td>
+</div>
+
+<!--/* ProblemList */-->
+<!-- 
+Medical Problem: Condition.code.text || Condition.code.coding[x].display
+Status: Condition.clinicalStatus.coding[x].display
+Comments: Condition.note[x].text (display all notes separated by <br /> )
+Onset Date: Condition.onsetDateTime
+ -->
+<div th:fragment="ProblemList (entryList)" th:with="section='ProblemList'">
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Medical Problems</th> 
+				<th>Status</th>
+				<th>Comments</th>
+				<th>Onset Date</th>
 			</tr>
-		</th:block>
-	</tbody>
-</table>
+		</thead>
+		<tbody>
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
+</div>
 
-<!--/* HistoryOfProcedures-uv-ips */-->
-<table th:fragment="HistoryOfProcedures-uv-ips (entryList)" class="hapiPropertyTable">
-	<tbody>
-		<th:block th:each="entry,iter : ${entryList}">
-			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'HistoryOfProcedures-' + ${iter.index}">
-				<td>Type</td>
-				<td th:text="${entry.resource.resourceType}"></td>
+<!--/* Immunizations */-->
+<!-- 
+Immunization: Immunization.vaccineCode.text || Immunization.vaccineCode.coding[x].display
+Status: Immunization.status.code
+Dose Number: Immunization.doseNumberPositiveInt || Immunization.doseNumberString             
+Manufacturer: Organization.name
+Lot Number: Immunization.lotNumber
+Comments: Immunization.note[x].text (display all notes separated by <br /> )
+Date: Immunization.occurrenceDateTime
+ -->
+<div th:fragment="Immunizations (entryList)" th:with="section='Immunizations'">
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Immunization</th> 
+				<th>Status</th>
+				<th>Dose Number</th>
+				<th>Manufacturer</th>
+				<th>Lot Number</th>
+				<th>Comments</th>
+				<th>Date</th>
 			</tr>
-		</th:block>
-	</tbody>
-</table>
+		</thead>
+		<tbody>
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
+</div>
 
-<!--/* MedicalDevices-uv-ips */-->
-<table th:fragment="MedicalDevices-uv-ips (entryList)" class="hapiPropertyTable">
-	<tbody>
-		<th:block th:each="entry,iter : ${entryList}">
-			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'MedicalDevices-' + ${iter.index}">
-				<td>Type</td>
-				<td th:text="${entry.resource.resourceType}"></td>
+<!--/* HistoryOfProcedures */-->
+<!-- 
+Procedure: Procedure.code.text || Procedure.code.coding[x].display
+Comments: Procedure.note[x].text(display all notes separated by <br /> )
+Date: Procedure.performedDateTime
+ -->
+<div th:fragment="HistoryOfProcedures (entryList)" th:with="section='HistoryOfProcedures'">
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Procedure</th> 
+				<th>Comments</th>
+				<th>Date</th>
 			</tr>
-		</th:block>
-	</tbody>
-</table>
+		</thead>
+		<tbody>
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
+</div>
 
-<!--/* DiagnosticResults-uv-ips */-->
-<table th:fragment="DiagnosticResults-uv-ips (entryList)" class="hapiPropertyTable">
-	<tbody>
-		<th:block th:each="entry,iter : ${entryList}">
-			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'DiagnosticResults-' + ${iter.index}">
-				<td>Type</td>
-				<td th:text="${entry.resource.resourceType}"></td>
+<!--/* MedicalDevices */-->
+<!-- 
+Device: Device.type.coding.text || Device.type.coding[x].display
+Status: DeviceUseStatement.status.code
+Comments: DeviceUseStatement.note[x].text (display all notes separated by <br /> )
+Date Recorded: DeviceUseStatement.recordedOn
+ -->
+<div th:fragment="MedicalDevices (entryList)" th:with="section='MedicalDevices'">
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Device</th> 
+				<th>Status</th>
+				<th>Comments</th>
+				<th>Date Recorded</th>
 			</tr>
-		</th:block>
-	</tbody>
-</table>
+		</thead>
+		<tbody>
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
+</div>
 
-
-<!--/* VitalSigns-uv-ips */-->
-<table th:fragment="VitalSigns-uv-ips (entryList)" class="hapiPropertyTable">
-	<tbody>
-		<th:block th:each="entry,iter : ${entryList}">
-			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'VitalSigns-' + ${iter.index}">
-				<td>Type</td>
-				<td th:text="${entry.resource.resourceType}"></td>
+<!--/* DiagnosticResults */-->
+<!-- 
+TABLE 1: Observation
+Code: Observation.code.text || Observation.code.coding[x].display
+Result: Observation.valueQuantity.value || Observation.valueCodeableConcept.coding[x].display || Observation.valueString
+Unit: Observation.valueQuantity.unit
+Interpretation: Observation.interpretation.text || Observation. interpretation.coding[x].display
+Reference Range: Observation.referenceRange.low.value && “-“ && Observation.referenceRange.high.value
+Comments: Observation.note[x].text (display all notes separated by <br /> )
+Date: Observation.effectiveDateTime
+ 
+TABLE 2: DiagnosticReport
+Code: DiagnosticReport.code.text || DiagnosticReport.code.coding[x].display
+Date: DiagnosticReport.effectiveDateTime
+ -->
+<div th:fragment="DiagnosticResults (entryList)" th:with="section='DiagnosticResults'">
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Code</th> 
+				<th>Result</th>
+				<th>Unit</th>
+				<th>Interpretation</th>
+				<th>Reference Range</th>
+				<th>Comments</th>
+				<th>Date</th>
 			</tr>
-		</th:block>
-	</tbody>
-</table>
+		</thead>
+		<tbody>
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
 
-<!--/* Pregnancy-uv-ips */-->
-<table th:fragment="Pregnancy-uv-ips (entryList)" class="hapiPropertyTable">
-	<tbody>
-		<th:block th:each="entry,iter : ${entryList}">
-			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'Pregnancy-' + ${iter.index}">
-				<td>Type</td>
-				<td th:text="${entry.resource.resourceType}"></td>
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Code</th> 
+				<th>Date</th>
 			</tr>
-		</th:block>
-	</tbody>
-</table>
+		</thead>
+		<tbody>
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
+</div>
 
-<!--/* SocialHistory-uv-ips */-->
-<table th:fragment="SocialHistory-uv-ips (entryList)" class="hapiPropertyTable">
-	<tbody>
-		<th:block th:each="entry,iter : ${entryList}">
-			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'SocialHistory-' + ${iter.index}">
-				<td>Type</td>
-				<td th:text="${entry.resource.resourceType}"></td>
-			</tr>
-		</th:block>
-	</tbody>
-</table>
 
-<!--/* PastHistoryOfIllnesses-uv-ips */-->
-<table th:fragment="PastHistoryOfIllnesses-uv-ips (entryList)" class="hapiPropertyTable">
-	<tbody>
-		<th:block th:each="entry,iter : ${entryList}">
-			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'PastHistoryOfIllnesses-' + ${iter.index}">
-				<td>Type</td>
-				<td th:text="${entry.resource.resourceType}"></td>
+<!--/* VitalSigns */-->
+<!-- 
+Code: Observation.code.text || Observation.code.coding[x].display
+Result: Observation.valueQuantity.value || Observation.valueCodeableConcept.coding[x].display || Observation.valueString
+Unit: Observation.valueQuantity.unit
+Interpretation: Observation.interpretation.text || Observation. interpretation.coding[x].display
+Comments: Observation.note[x].text (display all notes separated by <br /> )
+Date: Observation.effectiveDateTime
+ -->
+<div th:fragment="VitalSigns (entryList)" th:with="section='VitalSigns'">
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Code</th> 
+				<th>Result</th>
+				<th>Unit</th>
+				<th>Interpretation</th>
+				<th>Comments</th>
+				<th>Date</th>
 			</tr>
-		</th:block>
-	</tbody>
-</table>
+		</thead>
+		<tbody>
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
+</div>
 
-<!--/* FunctionalStatus-uv-ips */-->
-<table th:fragment="FunctionalStatus-uv-ips (entryList)" class="hapiPropertyTable">
-	<tbody>
-		<th:block th:each="entry,iter : ${entryList}">
-			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'FunctionalStatus-' + ${iter.index}">
-				<td>Type</td>
-				<td th:text="${entry.resource.resourceType}"></td>
+<!--/* Pregnancy */-->
+<!-- 
+Code: Observation.code.text || Observation.code.coding[x].display
+Result: Observation.valueQuantity.value || Observation.valueDateTime || Observation.valueCodeableConcept.coding[x].display || Observation.valueString
+Comments: Observation.note[x].text (display all notes separated by <br /> )
+Date: Observation.effectiveDateTime
+ -->
+<div th:fragment="Pregnancy (entryList)" th:with="section='Pregnancy'">
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Code</th> 
+				<th>Result</th>
+				<th>Comments</th>
+				<th>Date</th>
 			</tr>
-		</th:block>
-	</tbody>
-</table>
+		</thead>
+		<tbody>
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
+</div>
 
-<!--/* PlanOfCare-uv-ips */-->
-<table th:fragment="PlanOfCare-uv-ips (entryList)" class="hapiPropertyTable">
-	<tbody>
-		<th:block th:each="entry,iter : ${entryList}">
-			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'PlanOfCare-' + ${iter.index}">
-				<td>Type</td>
-				<td th:text="${entry.resource.resourceType}"></td>
+<!--/* SocialHistory */-->
+<!-- 
+Code: Observation.code.text || Observation.code.coding[x].display
+Result: Observation.valueQuantity.value || Observation.valueCodeableConcept.coding[x].display || Observation.valueString
+Unit: Observation.valueQuantity.unit
+Comments: Observation.note[x].text (display all notes separated by <br /> )
+Date: Observation.effectiveDateTime
+ -->
+<div th:fragment="SocialHistory (entryList)" th:with="section='SocialHistory'">
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Code</th> 
+				<th>Result</th>
+				<th>Unit</th>
+				<th>Comments</th>
+				<th>Date</th>
 			</tr>
-		</th:block>
-	</tbody>
-</table>
+		</thead>
+		<tbody>
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
+</div>
 
-<!--/* AdvanceDirectives-uv-ips */-->
-<table th:fragment="AdvanceDirectives-uv-ips (entryList)" class="hapiPropertyTable">
-	<tbody>
-		<th:block th:each="entry,iter : ${entryList}">
-			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'AdvanceDirectives-' + ${iter.index}">
-				<td>Type</td>
-				<td th:text="${entry.resource.resourceType}"></td>
+<!--/* PastHistoryOfIllnesses */-->
+<!-- 
+Medical Problem: Condition.code.text || Condition.code.coding[x].display
+Status: Condition.clinicalStatus.coding[x].display
+Comments: Condition.note[x].text (display all notes separated by <br /> )
+Onset Date: Condition.onsetDateTime
+ -->
+<div th:fragment="PastHistoryOfIllnesses (entryList)" th:with="section='PastHistoryOfIllnesses'">
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Medical Problems</th> 
+				<th>Status</th>
+				<th>Comments</th>
+				<th>Date</th>
 			</tr>
-		</th:block>
-	</tbody>
-</table>
+		</thead>
+		<tbody>
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
+</div>
+
+<!--/* FunctionalStatus */-->
+<!-- 
+Assessment: ClinicalImpression.code.text ||  ClinicalImpression.code[x].display
+Status: ClinicalImpression.status.code
+Finding:  ClinicalImpression.summary
+Comments: ClinicalImpression.note[x].text (display all notes separated by <br /> )
+Date: ClinicalImpression.effectiveDateTime
+ -->
+<div th:fragment="FunctionalStatus (entryList)" th:with="section='FunctionalStatus'">
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Assessment</th> 
+				<th>Status</th>
+				<th>Finding</th>
+				<th>Comments</th>
+				<th>Date</th>
+			</tr>
+		</thead>
+		<tbody>
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
+</div>
+
+<!--/* PlanOfCare */-->
+<!-- 
+Activity: CarePlan.description
+Intent: CarePlan.intent.code
+Comments: CarePlan.dosage [x].text
+Planned Start: CarePlan.period.start
+Planned End: CarePlan.period.end
+ -->
+<div th:fragment="PlanOfCare (entryList)" th:with="section='PlanOfCare'">
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Activity</th> 
+				<th>Intent</th> 
+				<th>Comments</th> 
+				<th>Planned Start</th>
+				<th>Planned End</th>
+			</tr>
+		</thead>
+		<tbody>
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
+</div>
+
+<!--/* AdvanceDirectives */-->
+<!-- 
+Scope: Consent.scope.text || Consent.scope.coding[x].display
+Status: Consent.status.code
+Action Controlled: Consent.provision.action[x].coding[x].display (concatenate items separated by comma, e.g. x, y, z)
+Date: Consent.dateTime
+ -->
+<div th:fragment="AdvanceDirectives (entryList)" th:with="section='AdvanceDirectives'">
+	<table class="hapiPropertyTable">
+		<thead>
+			<tr>
+				<th>Scope</th> 
+				<th>Status</th> 
+				<th>Action Controlled</th> 
+				<th>Date</th>
+			</tr>
+		</thead>
+		<tbody>
+			<th:block th:each="entry,iter : ${entryList}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td>Type</td>
+					<td th:text="${entry.resource.resourceType}"></td>
+				</tr>
+			</th:block>
+		</tbody>
+	</table>
+</div>
