@@ -22,8 +22,8 @@ a browser.
 <!--/* AllergiesAndIntolerances-uv-ips */-->
 <table th:fragment="AllergiesAndIntolerances-uv-ips (entryList)" class="hapiPropertyTable">
 	<tbody>
-		<th:block th:each="entry : ${entryList}">
-			<tr>
+		<th:block th:each="entry,iter : ${entryList}">
+			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'AllergiesAndIntolerances-' + ${iter.index}">
 				<td>Type</td>
 				<td th:text="${entry.resource.resourceType}"></td>
 			</tr>
@@ -34,8 +34,8 @@ a browser.
 <!--/* MedicationSummary-uv-ips */-->
 <table th:fragment="MedicationSummary-uv-ips (entryList)" class="hapiPropertyTable">
 	<tbody>
-		<th:block th:each="entry : ${entryList}">
-			<tr>
+		<th:block th:each="entry,iter : ${entryList}">
+			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'MedicationSummary-' + ${iter.index}">
 				<td>Type</td>
 				<td th:text="${entry.resource.resourceType}"></td>
 			</tr>
@@ -46,8 +46,8 @@ a browser.
 <!--/* ProblemList-uv-ips */-->
 <table th:fragment="ProblemList-uv-ips (entryList)" class="hapiPropertyTable">
 	<tbody>
-		<th:block th:each="entry : ${entryList}">
-			<tr>
+		<th:block th:each="entry,iter : ${entryList}">
+			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'ProblemList-' + ${iter.index}">
 				<td>Type</td>
 				<td th:text="${entry.resource.resourceType}"></td>
 			</tr>
@@ -58,8 +58,8 @@ a browser.
 <!--/* Immunizations-uv-ips */-->
 <table th:fragment="Immunizations-uv-ips (entryList)" class="hapiPropertyTable">
 	<tbody>
-		<th:block th:each="entry : ${entryList}">
-			<tr>
+		<th:block th:each="entry,iter : ${entryList}">
+			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'Immunizations-' + ${iter.index}">
 				<td>Type</td>
 				<td th:text="${entry.resource.resourceType}"></td>
 			</tr>
@@ -70,8 +70,8 @@ a browser.
 <!--/* HistoryOfProcedures-uv-ips */-->
 <table th:fragment="HistoryOfProcedures-uv-ips (entryList)" class="hapiPropertyTable">
 	<tbody>
-		<th:block th:each="entry : ${entryList}">
-			<tr>
+		<th:block th:each="entry,iter : ${entryList}">
+			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'HistoryOfProcedures-' + ${iter.index}">
 				<td>Type</td>
 				<td th:text="${entry.resource.resourceType}"></td>
 			</tr>
@@ -82,8 +82,8 @@ a browser.
 <!--/* MedicalDevices-uv-ips */-->
 <table th:fragment="MedicalDevices-uv-ips (entryList)" class="hapiPropertyTable">
 	<tbody>
-		<th:block th:each="entry : ${entryList}">
-			<tr>
+		<th:block th:each="entry,iter : ${entryList}">
+			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'MedicalDevices-' + ${iter.index}">
 				<td>Type</td>
 				<td th:text="${entry.resource.resourceType}"></td>
 			</tr>
@@ -94,8 +94,8 @@ a browser.
 <!--/* DiagnosticResults-uv-ips */-->
 <table th:fragment="DiagnosticResults-uv-ips (entryList)" class="hapiPropertyTable">
 	<tbody>
-		<th:block th:each="entry : ${entryList}">
-			<tr>
+		<th:block th:each="entry,iter : ${entryList}">
+			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'DiagnosticResults-' + ${iter.index}">
 				<td>Type</td>
 				<td th:text="${entry.resource.resourceType}"></td>
 			</tr>
@@ -107,8 +107,8 @@ a browser.
 <!--/* VitalSigns-uv-ips */-->
 <table th:fragment="VitalSigns-uv-ips (entryList)" class="hapiPropertyTable">
 	<tbody>
-		<th:block th:each="entry : ${entryList}">
-			<tr>
+		<th:block th:each="entry,iter : ${entryList}">
+			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'VitalSigns-' + ${iter.index}">
 				<td>Type</td>
 				<td th:text="${entry.resource.resourceType}"></td>
 			</tr>
@@ -119,8 +119,8 @@ a browser.
 <!--/* Pregnancy-uv-ips */-->
 <table th:fragment="Pregnancy-uv-ips (entryList)" class="hapiPropertyTable">
 	<tbody>
-		<th:block th:each="entry : ${entryList}">
-			<tr>
+		<th:block th:each="entry,iter : ${entryList}">
+			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'Pregnancy-' + ${iter.index}">
 				<td>Type</td>
 				<td th:text="${entry.resource.resourceType}"></td>
 			</tr>
@@ -131,8 +131,8 @@ a browser.
 <!--/* SocialHistory-uv-ips */-->
 <table th:fragment="SocialHistory-uv-ips (entryList)" class="hapiPropertyTable">
 	<tbody>
-		<th:block th:each="entry : ${entryList}">
-			<tr>
+		<th:block th:each="entry,iter : ${entryList}">
+			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'SocialHistory-' + ${iter.index}">
 				<td>Type</td>
 				<td th:text="${entry.resource.resourceType}"></td>
 			</tr>
@@ -143,8 +143,8 @@ a browser.
 <!--/* PastHistoryOfIllnesses-uv-ips */-->
 <table th:fragment="PastHistoryOfIllnesses-uv-ips (entryList)" class="hapiPropertyTable">
 	<tbody>
-		<th:block th:each="entry : ${entryList}">
-			<tr>
+		<th:block th:each="entry,iter : ${entryList}">
+			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'PastHistoryOfIllnesses-' + ${iter.index}">
 				<td>Type</td>
 				<td th:text="${entry.resource.resourceType}"></td>
 			</tr>
@@ -155,8 +155,8 @@ a browser.
 <!--/* FunctionalStatus-uv-ips */-->
 <table th:fragment="FunctionalStatus-uv-ips (entryList)" class="hapiPropertyTable">
 	<tbody>
-		<th:block th:each="entry : ${entryList}">
-			<tr>
+		<th:block th:each="entry,iter : ${entryList}">
+			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'FunctionalStatus-' + ${iter.index}">
 				<td>Type</td>
 				<td th:text="${entry.resource.resourceType}"></td>
 			</tr>
@@ -167,8 +167,8 @@ a browser.
 <!--/* PlanOfCare-uv-ips */-->
 <table th:fragment="PlanOfCare-uv-ips (entryList)" class="hapiPropertyTable">
 	<tbody>
-		<th:block th:each="entry : ${entryList}">
-			<tr>
+		<th:block th:each="entry,iter : ${entryList}">
+			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'PlanOfCare-' + ${iter.index}">
 				<td>Type</td>
 				<td th:text="${entry.resource.resourceType}"></td>
 			</tr>
@@ -179,8 +179,8 @@ a browser.
 <!--/* AdvanceDirectives-uv-ips */-->
 <table th:fragment="AdvanceDirectives-uv-ips (entryList)" class="hapiPropertyTable">
 	<tbody>
-		<th:block th:each="entry : ${entryList}">
-			<tr>
+		<th:block th:each="entry,iter : ${entryList}">
+			<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'AdvanceDirectives-' + ${iter.index}">
 				<td>Type</td>
 				<td th:text="${entry.resource.resourceType}"></td>
 			</tr>
