@@ -21,10 +21,12 @@ import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.Observation.ObservationStatus;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Address;
+import org.hl7.fhir.r4.model.Identifier;
 // import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 
+import java.util.UUID;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -151,8 +153,13 @@ public class PatientSummary {
 	private static Bundle createIPSBundle() {
 		Bundle bundle = new Bundle();
 		bundle.setType(BundleType.DOCUMENT)
-			.setTimestamp(new Date())
-			.setId(IdDt.newRandomUuid());		
+			.setTimestamp(new Date());
+
+		Identifier iden = new Identifier();
+		iden.setValue(UUID.randomUUID().toString());
+
+		bundle.setIdentifier(iden);
+                        //.setId(IdDt.newRandomUuid());		
 		return bundle;
 	}
 
