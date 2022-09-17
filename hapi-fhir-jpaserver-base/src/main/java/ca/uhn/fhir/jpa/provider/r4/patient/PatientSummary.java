@@ -289,11 +289,11 @@ public class PatientSummary {
 		}
 		if (section == IPSSection.PREGNANCY) {
 			Observation observation = (Observation) resource;
-			return (observation.getStatus() == ObservationStatus.PRELIMINARY);
+			return (observation.getStatus() != ObservationStatus.PRELIMINARY);
 		}
 		if (section == IPSSection.SOCIAL_HISTORY) {
 			Observation observation = (Observation) resource;
-			return (observation.getStatus() == ObservationStatus.PRELIMINARY);
+			return (observation.getStatus() != ObservationStatus.PRELIMINARY);
 		}
 		// if (section == IPSSection.ILLNESS_HISTORY) {
 		// 	return true;
