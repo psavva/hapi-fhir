@@ -85,8 +85,10 @@ public abstract class BaseNarrativeGenerator implements INarrativeGenerator {
 			// Extract [element].text of type Narrative
 			INarrative nextTargetNarrative = getOrCreateNarrativeChildElement(theFhirContext, nextTargetContext);
 
+
+			List<IBase> list = findElementsInResourceRequiringNarratives(theFhirContext, theResource, resourceName);
 			// Create the actual narrative text
-			String narrative = applyTemplate(theFhirContext, theTemplate, nextTargetContext);
+			String narrative = applyTemplate(theFhirContext, theTemplate, list.get(0));
 			narrative = cleanWhitespace(narrative);
 
 			if (isNotBlank(narrative)) {
