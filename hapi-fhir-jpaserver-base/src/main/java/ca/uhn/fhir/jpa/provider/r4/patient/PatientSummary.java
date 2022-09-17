@@ -115,7 +115,7 @@ public class PatientSummary {
 		List<Resource> expandedResources = addNoInfoResources(searchResources, initialHashedPrimaries, patient);
 		HashMap<IPSSection, List<Resource>> hashedPrimaries = hashPrimaries(expandedResources);
 		HashMap<IPSSection, List<Resource>> filteredPrimaries = filterPrimaries(hashedPrimaries);
-		List<Resource> resources = pruneResources(expandedResources, filteredPrimaries);
+		List<Resource> resources = pruneResources(patient, expandedResources, filteredPrimaries, ctx);
 		HashMap<IPSSection, String> hashedNarratives = createNarratives(filteredPrimaries, resources, ctx);
 
 		Bundle bundle = createIPSBundle();
@@ -214,11 +214,49 @@ public class PatientSummary {
 		return filteredPrimaries;
 	}
 
-	private static List<Resource> pruneResources(List<Resource> resources,  HashMap<IPSSection, List<Resource>> hashedPrimaries) {
+	private static List<Resource> pruneResources(Patient patient, List<Resource> resources,  HashMap<IPSSection, List<Resource>> hashedPrimaries, FhirContext ctx) {
 		// Stubbed out for now
-		// hashedPrimaries.values().stream().flatMap(List::stream).collect(Collectors.toList());
+	
+		List<String> resourceIds = new ArrayList<String>();
 
-		return resources;
+		List<String> followedIds = new ArrayList<String>();
+
+		recursivePrune(resourceIds, followedIds, patient, ctx);
+
+		for (IPSSection section : hashedPrimaries.keySet()) {
+			for (Resource resource : hashedPrimaries.get(section)) {
+				recursivePrune(resourceIds, followedIds, resource, ctx);
+			}
+		}
+
+		List<Resource> prunedResources = new ArrayList<Resource>();
+
+		for (Resource resource : resources) {
+			if (resourceIds.contains(resource.getId())) {
+				prunedResources.add(resource);
+			}
+		}
+
+		return prunedResources;
+	}
+
+	private static Void recursivePrune(List<String> resourceIds,  List<String> followedIds, Resource resource, FhirContext ctx) {
+		String resourceId = resource.getIdElement().getValue();
+		
+		if (!resourceIds.contains(resourceId)) {
+			resourceIds.add(resourceId);
+		}
+		
+		ctx.newTerser().getAllResourceReferences(resource).stream()
+		.map( r -> r.getResourceReference().getReferenceElement().getValue())
+		.forEach(id ->  {
+			if (!followedIds.contains(id)) {
+				followedIds.add(id);
+				recursivePrune(resourceIds, followedIds, resource, ctx);
+			}
+		});
+
+		return null;
 	}
 
 	private static HashMap<IPSSection, String> createNarratives(HashMap<IPSSection, List<Resource>> hashedPrimaries, List<Resource> resources, FhirContext ctx) {
