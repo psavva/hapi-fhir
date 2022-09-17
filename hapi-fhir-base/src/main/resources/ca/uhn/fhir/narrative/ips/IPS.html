@@ -44,9 +44,14 @@ Onset: AllergyIntolerance.onsetDateTime
 		</thead>
 		<tbody>	
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${entry.resource.resourceType}" th:unless="${resourceType == 'Composition'}" th:id="'AllergiesAndIntolerances-' + ${iter.index}">
-					<td>Type</td>
-					<td th:text="${entry.resource.resourceType}"></td>
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+					<td th:text="${entry.resource.resourceType}">Allergen</td> 
+					<td>Status</td>
+					<td>Category</td>
+					<td>Reaction</td>
+					<td>Severity</td>
+					<td>Comments</td>
+					<td>Onset</td>
 				</tr>
 			</th:block>
 		</tbody>
@@ -85,7 +90,7 @@ Date:  MedicationStatement.effectiveDateTime
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -105,7 +110,7 @@ Date:  MedicationStatement.effectiveDateTime
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -134,7 +139,7 @@ Onset Date: Condition.onsetDateTime
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -168,7 +173,7 @@ Date: Immunization.occurrenceDateTime
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -194,7 +199,7 @@ Date: Procedure.performedDateTime
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -222,7 +227,7 @@ Date Recorded: DeviceUseStatement.recordedOn
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -261,7 +266,7 @@ Date: DiagnosticReport.effectiveDateTime
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -278,7 +283,7 @@ Date: DiagnosticReport.effectiveDateTime
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -311,7 +316,7 @@ Date: Observation.effectiveDateTime
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -339,7 +344,7 @@ Date: Observation.effectiveDateTime
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -369,7 +374,7 @@ Date: Observation.effectiveDateTime
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -397,7 +402,7 @@ Onset Date: Condition.onsetDateTime
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -427,7 +432,7 @@ Date: ClinicalImpression.effectiveDateTime
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -457,7 +462,7 @@ Planned End: CarePlan.period.end
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -485,7 +490,7 @@ Date: Consent.dateTime
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
