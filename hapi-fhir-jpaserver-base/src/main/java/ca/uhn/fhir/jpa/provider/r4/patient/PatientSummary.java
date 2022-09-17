@@ -156,6 +156,7 @@ public class PatientSummary {
 			.setTimestamp(new Date());
 
 		Identifier iden = new Identifier();
+		iden.setSystem("urn:ietf:rfc:4122");
 		iden.setValue(UUID.randomUUID().toString());
 
 		bundle.setIdentifier(iden);
@@ -434,7 +435,7 @@ public class PatientSummary {
 	private static MedicationStatement noInfoMedications(Patient patient) {
 		MedicationStatement medication = new MedicationStatement();
 		// setMedicationCodeableConcept is not available
-		medication.setCategory(new CodeableConcept().addCoding(new Coding().setCode("no-medication-info").setSystem("http://hl7.org/fhir/uv/ips/CodeSystem/absent-unknown-uv-ips").setDisplay("No information about medications")))
+		medication.setMedication(new CodeableConcept().addCoding(new Coding().setCode("no-medication-info").setSystem("http://hl7.org/fhir/uv/ips/CodeSystem/absent-unknown-uv-ips").setDisplay("No information about medications")))
 			.setSubject(new Reference(patient))
 			.setStatus(MedicationStatement.MedicationStatementStatus.UNKNOWN)
 			// .setEffective(new Period().addExtension().setUrl("http://hl7.org/fhir/StructureDefinition/data-absent-reason").setValue((new Coding().setCode("not-applicable"))))
