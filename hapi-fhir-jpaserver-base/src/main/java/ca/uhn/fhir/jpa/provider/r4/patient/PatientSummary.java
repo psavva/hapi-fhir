@@ -108,6 +108,24 @@ public class PatientSummary {
 
 	private static final List<String> PregnancyCodes = List.of("82810-3", "11636-8", "11637-6", "11638-4", "11639-2", "11640-0", "11612-9", "11613-7", "11614-5", "33065-4");
 
+	// Could not locate these profiles so tried to follow the pattern of the other profiles
+	private static final Map<IPSSection, String> SectionProfiles = Map.ofEntries(
+		Map.entry(IPSSection.ALLERGY_INTOLERANCE, "http://hl7.org/fhir/uv/ips/StructureDefinition/AllergiesAndIntolerances-uv-ips"),
+		Map.entry(IPSSection.MEDICATION_SUMMARY, "http://hl7.org/fhir/uv/ips/StructureDefinition/MedicationSummary-uv-ips"),
+		Map.entry(IPSSection.PROBLEM_LIST, "http://hl7.org/fhir/uv/ips/StructureDefinition/ProblemList-uv-ips"),
+		Map.entry(IPSSection.IMMUNIZATIONS, "http://hl7.org/fhir/uv/ips/StructureDefinition/Immunizations-uv-ips"),
+		Map.entry(IPSSection.PROCEDURES, "http://hl7.org/fhir/uv/ips/StructureDefinition/HistoryOfProcedures-uv-ips"),
+		Map.entry(IPSSection.MEDICAL_DEVICES, "http://hl7.org/fhir/uv/ips/StructureDefinition/MedicalDevices-uv-ips"),
+		Map.entry(IPSSection.DIAGNOSTIC_RESULTS, "http://hl7.org/fhir/uv/ips/StructureDefinition/DiagnosticResults-uv-ips"),
+		Map.entry(IPSSection.VITAL_SIGNS, "http://hl7.org/fhir/uv/ips/StructureDefinition/VitalSigns-uv-ips"),
+		Map.entry(IPSSection.PREGNANCY, "http://hl7.org/fhir/uv/ips/StructureDefinition/Pregnancy-uv-ips"),
+		Map.entry(IPSSection.SOCIAL_HISTORY, "http://hl7.org/fhir/uv/ips/StructureDefinition/SocialHistory-uv-ips"),
+		// Map.entry(IPSSection.ILLNESS_HISTORY, "http://hl7.org/fhir/uv/ips/StructureDefinition/PastHistoryOfIllnesses-uv-ips"),
+		Map.entry(IPSSection.FUNCTIONAL_STATUS, "http://hl7.org/fhir/uv/ips/StructureDefinition/FunctionalStatus-uv-ips"),
+		Map.entry(IPSSection.PLAN_OF_CARE, "http://hl7.org/fhir/uv/ips/StructureDefinition/PlanOfCare-uv-ips"),
+		Map.entry(IPSSection.ADVANCE_DIRECTIVES, "http://hl7.org/fhir/uv/ips/StructureDefinition/AdvanceDirectives-uv-ips")
+	);
+
 	public static Bundle buildFromSearch(IBundleProvider searchSet, FhirContext ctx) {	
 		List<Resource> searchResources = createResourceList(searchSet.getAllResources());
 		Patient patient = (Patient) searchResources.get(0);
@@ -272,30 +290,26 @@ public class PatientSummary {
 	}
 
 	private static String createSectionNarrative(IPSSection iPSSection, List<Resource> resources, FhirContext ctx) {
-		// // Use the narrative generator
-		// ctx.setNarrativeGenerator(new DefaultThymeleafNarrativeGenerator());
-		// // Create a bundle to hold the resources
-		// Bundle bundle = new Bundle();
-		// Composition composition = new Composition();
+		// Use the narrative generator
+		ctx.setNarrativeGenerator(new DefaultThymeleafNarrativeGenerator());
+		// Create a bundle to hold the resources
+		Bundle bundle = new Bundle();
+		Composition composition = new Composition();
 
-		// bundle.addEntry().setResource(composition);
-		// for (Resource resource : resources) {
-		// 	bundle.addEntry().setResource(resource);
-		// }
+		bundle.addEntry().setResource(composition);
+		for (Resource resource : resources) {
+			bundle.addEntry().setResource(resource);
+		}
 
-		// Need to look up profile for each section
-		// String profile = "http://hl7.org/fhir/uv/ips/StructureDefinition/AllergyIntolerance-uv-ips"
-		// bundle.setMeta(new Meta().addProfile(profile));
+		String profile = SectionProfiles.get(iPSSection);
+		bundle.setMeta(new Meta().addProfile(profile));
 
-		// // Generate the narrative
-		// DefaultThymeleafNarrativeGenerator generator = new DefaultThymeleafNarrativeGenerator();
-		// generator.populateResourceNarrative(ctx, bundle);
+		// Generate the narrative
+		DefaultThymeleafNarrativeGenerator generator = new DefaultThymeleafNarrativeGenerator();
+		generator.populateResourceNarrative(ctx, bundle);
 		
-		// // Get the narrative
-		// String narrative = composition.getText().getDivAsString();
-		
-		// Stubbed out for now
-		String narrative = "<div>Narrative</div>";
+		// Get the narrative
+		String narrative = composition.getText().getDivAsString();
 		
 		return narrative;
 	}

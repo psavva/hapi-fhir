@@ -1,0 +1,189 @@
+<!--/* 
+This top section is not exported as a part of the Narrative,
+it is only present so that this template can be viewed in 
+a browser. 
+-->
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="narrative.css"/>
+	</head>
+	<body>
+<!--*/-->
+
+<div th:with="section=${#strings.arraySplit(resource.meta.profile.get(0).value, '/')[#arrays.length(#strings.arraySplit(resource.meta.profile.get(0).value, '/')) - 1]}">
+	<div th:replace=" :: ${section} (entryList=${resource.entry})">Page Content</div>
+</div>
+
+<!--/*-->
+	</body>
+</html>
+<!--*/-->
+
+<!--/* AllergiesAndIntolerances-uv-ips */-->
+<table th:fragment="AllergiesAndIntolerances-uv-ips (entryList)" class="hapiPropertyTable">
+	<tbody>
+		<th:block th:each="entry : ${entryList}">
+			<tr>
+				<td>Type</td>
+				<td th:text="${entry.resource.resourceType}"></td>
+			</tr>
+		</th:block>
+	</tbody>
+</table>
+
+<!--/* MedicationSummary-uv-ips */-->
+<table th:fragment="MedicationSummary-uv-ips (entryList)" class="hapiPropertyTable">
+	<tbody>
+		<th:block th:each="entry : ${entryList}">
+			<tr>
+				<td>Type</td>
+				<td th:text="${entry.resource.resourceType}"></td>
+			</tr>
+		</th:block>
+	</tbody>
+</table>
+
+<!--/* ProblemList-uv-ips */-->
+<table th:fragment="ProblemList-uv-ips (entryList)" class="hapiPropertyTable">
+	<tbody>
+		<th:block th:each="entry : ${entryList}">
+			<tr>
+				<td>Type</td>
+				<td th:text="${entry.resource.resourceType}"></td>
+			</tr>
+		</th:block>
+	</tbody>
+</table>
+
+<!--/* Immunizations-uv-ips */-->
+<table th:fragment="Immunizations-uv-ips (entryList)" class="hapiPropertyTable">
+	<tbody>
+		<th:block th:each="entry : ${entryList}">
+			<tr>
+				<td>Type</td>
+				<td th:text="${entry.resource.resourceType}"></td>
+			</tr>
+		</th:block>
+	</tbody>
+</table>
+
+<!--/* HistoryOfProcedures-uv-ips */-->
+<table th:fragment="HistoryOfProcedures-uv-ips (entryList)" class="hapiPropertyTable">
+	<tbody>
+		<th:block th:each="entry : ${entryList}">
+			<tr>
+				<td>Type</td>
+				<td th:text="${entry.resource.resourceType}"></td>
+			</tr>
+		</th:block>
+	</tbody>
+</table>
+
+<!--/* MedicalDevices-uv-ips */-->
+<table th:fragment="MedicalDevices-uv-ips (entryList)" class="hapiPropertyTable">
+	<tbody>
+		<th:block th:each="entry : ${entryList}">
+			<tr>
+				<td>Type</td>
+				<td th:text="${entry.resource.resourceType}"></td>
+			</tr>
+		</th:block>
+	</tbody>
+</table>
+
+<!--/* DiagnosticResults-uv-ips */-->
+<table th:fragment="DiagnosticResults-uv-ips (entryList)" class="hapiPropertyTable">
+	<tbody>
+		<th:block th:each="entry : ${entryList}">
+			<tr>
+				<td>Type</td>
+				<td th:text="${entry.resource.resourceType}"></td>
+			</tr>
+		</th:block>
+	</tbody>
+</table>
+
+
+<!--/* VitalSigns-uv-ips */-->
+<table th:fragment="VitalSigns-uv-ips (entryList)" class="hapiPropertyTable">
+	<tbody>
+		<th:block th:each="entry : ${entryList}">
+			<tr>
+				<td>Type</td>
+				<td th:text="${entry.resource.resourceType}"></td>
+			</tr>
+		</th:block>
+	</tbody>
+</table>
+
+<!--/* Pregnancy-uv-ips */-->
+<table th:fragment="Pregnancy-uv-ips (entryList)" class="hapiPropertyTable">
+	<tbody>
+		<th:block th:each="entry : ${entryList}">
+			<tr>
+				<td>Type</td>
+				<td th:text="${entry.resource.resourceType}"></td>
+			</tr>
+		</th:block>
+	</tbody>
+</table>
+
+<!--/* SocialHistory-uv-ips */-->
+<table th:fragment="SocialHistory-uv-ips (entryList)" class="hapiPropertyTable">
+	<tbody>
+		<th:block th:each="entry : ${entryList}">
+			<tr>
+				<td>Type</td>
+				<td th:text="${entry.resource.resourceType}"></td>
+			</tr>
+		</th:block>
+	</tbody>
+</table>
+
+<!--/* PastHistoryOfIllnesses-uv-ips */-->
+<table th:fragment="PastHistoryOfIllnesses-uv-ips (entryList)" class="hapiPropertyTable">
+	<tbody>
+		<th:block th:each="entry : ${entryList}">
+			<tr>
+				<td>Type</td>
+				<td th:text="${entry.resource.resourceType}"></td>
+			</tr>
+		</th:block>
+	</tbody>
+</table>
+
+<!--/* FunctionalStatus-uv-ips */-->
+<table th:fragment="FunctionalStatus-uv-ips (entryList)" class="hapiPropertyTable">
+	<tbody>
+		<th:block th:each="entry : ${entryList}">
+			<tr>
+				<td>Type</td>
+				<td th:text="${entry.resource.resourceType}"></td>
+			</tr>
+		</th:block>
+	</tbody>
+</table>
+
+<!--/* PlanOfCare-uv-ips */-->
+<table th:fragment="PlanOfCare-uv-ips (entryList)" class="hapiPropertyTable">
+	<tbody>
+		<th:block th:each="entry : ${entryList}">
+			<tr>
+				<td>Type</td>
+				<td th:text="${entry.resource.resourceType}"></td>
+			</tr>
+		</th:block>
+	</tbody>
+</table>
+
+<!--/* AdvanceDirectives-uv-ips */-->
+<table th:fragment="AdvanceDirectives-uv-ips (entryList)" class="hapiPropertyTable">
+	<tbody>
+		<th:block th:each="entry : ${entryList}">
+			<tr>
+				<td>Type</td>
+				<td th:text="${entry.resource.resourceType}"></td>
+			</tr>
+		</th:block>
+	</tbody>
+</table>
