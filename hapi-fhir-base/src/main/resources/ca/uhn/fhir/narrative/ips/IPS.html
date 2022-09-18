@@ -65,14 +65,39 @@ Onset: AllergyIntolerance.onsetDateTime
 					</th:block>
 					<td th:if="*{resource.clinicalStatus.empty}" />
 					
-					<!-- <td th:replace=":: concat (list=*{resource.category})" th:if="*{resource.category}">Category</td> -->
+					<th:block th:if="*{!resource.category.empty}">
+						<td th:replace=":: concat_value (list=*{resource.category})">Category</td>
+					</th:block>
+					<td th:if="*{resource.category.empty}" />
 					
-					<!-- <td th:text="*{resource.reaction.manifestation.text}" th:if="*{resource.reaction and resource.reaction.manifestation and resource.reaction.manifestation.text}">Reaction</td>
-					<td th:replace=":: concat_display (list=*{resource.reaction.manifestation.coding})" th:if="*{resource.reaction and resource.reaction.manifestation and resource.reaction.manifestation.coding} ">Reaction</td> -->
+					<th:block th:if="*{!resource.reaction.empty}">
+						<th:block th:if="*{!resource.reaction.manifestation.empty}">
+							<th:block th:if="*{!resource.reaction.manifestation.textElement.empty}">
+								<td th:text="*{resource.reaction.manifestation.text}">Reaction</td>
+							</th:block>
+							<th:block th:if="*{!resource.reaction.manifestation.coding.empty}">
+								<td th:replace=":: concat_display (list=*{resource.reaction.manifestation.coding})">Reaction</td> 
+							</th:block>
+							<td th:if="*{resource.reaction.manifestation.coding.empty}" />
+						</th:block>
+						<td th:if="*{resource.reaction.manifestation.empty}" />
+					</th:block>
+					<td th:if="*{resource.reaction.empty}" />
+	
+					<th:block th:if="*{!resource.reaction.empty}">
+						<th:block th:if="*{!resource.reaction.severity.empty}">
+							<td th:text="*{resource.reaction.severity.code}">Reaction</td>
+						</th:block>
+						<td th:if="*{resource.reaction.severity.empty}" />
+					</th:block>
+					<td th:if="*{resource.reaction.empty}" />
 					
-					<!-- <td th:replace=":: concat_code (list=*{resource.reaction.severity})" th:if="*{resource.reaction}">Severity</td> -->
-					<!-- <td th:replace=":: concat_text (list=*{resource.note})">Comments</td> -->
-					<!-- <td th:text="*{resource.onsetDateTime}">Onset</td> -->
+					<th:block th:if="*{!resource.note.empty}">
+						<td th:replace=":: concat_text (list=*{resource.note})">Comments</td>
+					</th:block>
+					<td th:if="*{resource.note.empty}" />
+					
+					<td th:text="*{resource.getOnsetDateTimeType().value}">Onset</td>
 				</tr>
 			</th:block>
 		</tbody>
@@ -82,6 +107,13 @@ Onset: AllergyIntolerance.onsetDateTime
 <td th:fragment="concat (list)">
 	<th:block th:each="item : ${list}" th:if="${list}">
 		<th:block th:if="${!item.empty}" th:text="${item}"/>
+		<br />
+	</th:block>
+</td>
+
+<td th:fragment="concat_value (list)">
+	<th:block th:each="item : ${list}" th:if="${list}">
+		<th:block th:if="${!item.empty}" th:text="${item.value}"/>
 		<br />
 	</th:block>
 </td>
@@ -189,8 +221,33 @@ Onset Date: Condition.onsetDateTime
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
 				<tr th:id="${section} + '-' + ${iter.index}">
-					<td>Type</td>
-					<td th:text="${entry.resource.resourceType}"></td>
+					
+					<th:block th:if="*{!resource.code.empty}">
+						<th:block th:if="*{!resource.code.textElement.empty}">
+							<td th:text="*{resource.code.text}">Medical Problems</td>
+						</th:block>
+						<th:block th:if="*{!resource.code.coding.empty}">
+							<td th:replace=":: concat_display (list=*{resource.code.coding})">Medical Problems</td> 
+						</th:block>
+						<td th:if="*{resource.code.coding.empty}" />
+					</th:block>
+					<td th:if="*{resource.code.empty}" />
+
+					<th:block th:if="*{!resource.getClinicalStatus().empty}">
+						<th:block th:if="*{!resource.getClinicalStatus().coding.empty}">
+							<td th:replace=":: concat_code (list=*{resource.getClinicalStatus().coding})">Status</td>
+						</th:block>
+						<td th:if="*{resource.getClinicalStatus().coding.empty}" />
+					</th:block>
+					<td th:if="*{resource.getClinicalStatus().empty}" />
+
+					<th:block th:if="*{!resource.note.empty}">
+						<td th:replace=":: concat_text (list=*{resource.note})">Comments</td>
+					</th:block>
+					<td th:if="*{resource.note.empty}" />
+
+					<td th:text="*{resource.getOnsetDateTimeType().value}">Onset</td>
+
 				</tr>
 			</th:block>
 		</tbody>
@@ -222,10 +279,33 @@ Date: Immunization.occurrenceDateTime
 		</thead>
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
-				<tr th:id="${section} + '-' + ${iter.index}">
-					<td>Type</td>
-					<td th:text="${entry.resource.resourceType}"></td>
+				<tr th:id="${section} + '-' + ${iter.index}">				
+					
+					<th:block th:if="*{!resource.vaccineCode.empty}">
+						<th:block th:if="*{!resource.vaccineCode.textElement.empty}">
+							<td th:text="*{resource.vaccineCode.text}">Immunization</td>
+						</th:block>
+						<th:block th:if="*{!resource.vaccineCode.coding.empty}">
+							<td th:replace=":: concat_display (list=*{resource.vaccineCode.coding})">Immunization</td> 
+						</th:block>
+						<td th:if="*{resource.vaccineCode.coding.empty}" />
+					</th:block>
+					<td th:if="*{resource.vaccineCode.empty}" />
+
+					<td th:text="*{resource.getDoseQuantity().value}">Dose Quanity</td>
+
+					<td th:text="${'Manufacturer INC'}">Manufacturer</td>
+
+					<td th:text="*{resource.getLotNumber()}">Lot Number</td>
+
+					<th:block th:if="*{!resource.note.empty}">
+						<td th:replace=":: concat_text (list=*{resource.note})">Comments</td>
+					</th:block>
+					<td th:if="*{resource.note.empty}" />
+
+					<td th:text="*{resource.getOccurrenceDateTimeType().value}">Onset</td>
 				</tr>
+
 			</th:block>
 		</tbody>
 	</table>
@@ -249,9 +329,24 @@ Date: Procedure.performedDateTime
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
 				<tr th:id="${section} + '-' + ${iter.index}">
-					<td>Type</td>
+					<th:block th:if="*{!resource.code.empty}">
+						<th:block th:if="*{!resource.code.textElement.empty}">
+							<td th:text="*{resource.code.text}">Medical Problems</td>
+						</th:block>
+						<th:block th:if="*{!resource.code.coding.empty}">
+							<td th:replace=":: concat_display (list=*{resource.code.coding})">Medical Problems</td> 
+						</th:block>
+						<td th:if="*{resource.code.coding.empty}" />
+					</th:block>
+					<td th:if="*{resource.code.empty}" />
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
+
+				<th:block th:if="*{!resource.note.empty}">
+					<td th:replace=":: concat_text (list=*{resource.note})">Comments</td>
+				</th:block>
+				<td th:if="*{resource.note.empty}" />
+
 			</th:block>
 		</tbody>
 	</table>
