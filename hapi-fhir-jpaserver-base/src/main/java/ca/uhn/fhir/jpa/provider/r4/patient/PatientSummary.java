@@ -325,7 +325,8 @@ public class PatientSummary {
 	private static Boolean passesFilter(IPSSection section, Resource resource) {
 		if (section == IPSSection.ALLERGY_INTOLERANCE) {
                         AllergyIntolerance alint = (AllergyIntolerance) resource;
-                        if (alint.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "active")
+                        if (!alint.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "inactive")
+                         && !alint.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "resolved")
                          && !alint.getVerificationStatus().hasCoding("http://terminology.hl7.org/CodeSystem/allergyintolerance-verification", "entered-in-error")) {
                             return true;
                         } else {
