@@ -18,6 +18,8 @@ import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.AllergyIntolerance;
 import org.hl7.fhir.r4.model.MedicationStatement;
 import org.hl7.fhir.r4.model.MedicationRequest;
+import org.hl7.fhir.r4.model.MedicationAdministration;
+import org.hl7.fhir.r4.model.MedicationDispense;
 import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.Observation.ObservationStatus;
 import org.hl7.fhir.r4.model.Organization;
@@ -325,6 +327,7 @@ public class PatientSummary {
 
 	private static Boolean passesFilter(IPSSection section, Resource resource) {
 		if (section == IPSSection.ALLERGY_INTOLERANCE) {
+                    if (resource.getResourceType() == ResourceType.AllergyIntolerance) {
                         AllergyIntolerance alint = (AllergyIntolerance) resource;
                         if (!alint.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "inactive")
                          && !alint.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "resolved")
@@ -333,6 +336,12 @@ public class PatientSummary {
                         } else {
                             return false;
                         }
+                    } else if (resource.getResourceType() == ResourceType.DocumentReference) {
+                        // no DocumentReference filtering yet
+                        return true;
+                    } else {
+                        return false;
+                    }                                                        
 		}
 		if (section == IPSSection.MEDICATION_SUMMARY) {
                         if (resource.getResourceType() == ResourceType.MedicationStatement) {
@@ -346,19 +355,41 @@ public class PatientSummary {
                                 return false;
                             }                            
                         } else if (resource.getResourceType() == ResourceType.MedicationRequest) {
-                            MedicationRequest medstat = (MedicationRequest) resource;
-                            if (medstat.getStatus() == MedicationRequest.MedicationRequestStatus.ACTIVE
-                             || medstat.getStatus() == MedicationRequest.MedicationRequestStatus.UNKNOWN
-                             || medstat.getStatus() == MedicationRequest.MedicationRequestStatus.ONHOLD) {
+                            MedicationRequest medreq = (MedicationRequest) resource;
+                            if (medreq.getStatus() == MedicationRequest.MedicationRequestStatus.ACTIVE
+                             || medreq.getStatus() == MedicationRequest.MedicationRequestStatus.UNKNOWN
+                             || medreq.getStatus() == MedicationRequest.MedicationRequestStatus.ONHOLD) {
                                 return true;
                             } else {
                                 return false;
                             }                                                        
+                        } else if (resource.getResourceType() == ResourceType.MedicationAdministration) {
+                            MedicationAdministration medadmin = (MedicationAdministration) resource;
+                            if (medadmin.getStatus() == MedicationAdministration.MedicationAdministrationStatus.INPROGRESS
+                             || medadmin.getStatus() == MedicationAdministration.MedicationAdministrationStatus.UNKNOWN
+                             || medadmin.getStatus() == MedicationAdministration.MedicationAdministrationStatus.ONHOLD) {
+                                return true;
+                            } else {
+                                return false;
+                            }                                                        
+                        } else if (resource.getResourceType() == ResourceType.MedicationDispense) {
+                            MedicationDispense meddisp = (MedicationDispense) resource;
+                            if (meddisp.getStatus() == MedicationDispense.MedicationDispenseStatus.INPROGRESS
+                             || meddisp.getStatus() == MedicationDispense.MedicationDispenseStatus.UNKNOWN
+                             || meddisp.getStatus() == MedicationDispense.MedicationDispenseStatus.ONHOLD) {
+                                return true;
+                            } else {
+                                return false;
+                            }                                                        
+                        } else if (resource.getResourceType() == ResourceType.DocumentReference) {
+                            // no DocumentReference filtering yet
+                            return true;
                         } else {
                             return false;
                         }                                                        
 		}
 		if (section == IPSSection.PROBLEM_LIST) {
+                    if (resource.getResourceType() == ResourceType.Condition) {
                         Condition prob = (Condition) resource;
                         if (!prob.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/condition-clinical", "inactive")
                          && !prob.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/condition-clinical", "resolved")
@@ -367,6 +398,12 @@ public class PatientSummary {
                         } else {
                             return false;
                         }
+                    } else if (resource.getResourceType() == ResourceType.DocumentReference) {
+                        // no DocumentReference filtering yet
+                        return true;
+                    } else {
+                        return false;
+                    }                                                        
 		}
 		if (section == IPSSection.IMMUNIZATIONS) {
 			return true;
