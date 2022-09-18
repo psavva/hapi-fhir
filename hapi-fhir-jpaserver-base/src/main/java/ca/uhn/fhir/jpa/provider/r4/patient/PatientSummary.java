@@ -326,7 +326,7 @@ public class PatientSummary {
 		if (section == IPSSection.ALLERGY_INTOLERANCE) {
                         AllergyIntolerance alint = (AllergyIntolerance) resource;
                         if (alint.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "active")
-                         && !alint.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "entered-in-error")) {
+                         && !alint.getVerificationStatus().hasCoding("http://terminology.hl7.org/CodeSystem/allergyintolerance-verification", "entered-in-error")) {
                             return true;
                         } else {
                             return false;
@@ -337,8 +337,9 @@ public class PatientSummary {
 		}
 		if (section == IPSSection.PROBLEM_LIST) {
                         Condition prob = (Condition) resource;
-                        if (prob.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "active")
-                         && !prob.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "entered-in-error")) {
+                        if (!prob.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/condition-clinical", "inactive")
+                         && !prob.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/condition-clinical", "resolved")
+                         && !prob.getVerificationStatus().hasCoding("http://terminology.hl7.org/CodeSystem/condition-ver-status", "entered-in-error")) {
                             return true;
                         } else {
                             return false;
