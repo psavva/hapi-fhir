@@ -324,13 +324,25 @@ public class PatientSummary {
 
 	private static Boolean passesFilter(IPSSection section, Resource resource) {
 		if (section == IPSSection.ALLERGY_INTOLERANCE) {
-			return true;
+                        AllergyIntolerance alint = (AllergyIntolerance) resource;
+                        if (alint.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "active")
+                         && !alint.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "entered-in-error")) {
+                            return true;
+                        } else {
+                            return false;
+                        }
 		}
 		if (section == IPSSection.MEDICATION_SUMMARY) {
 			return true;
 		}
 		if (section == IPSSection.PROBLEM_LIST) {
-			return true;
+                        Condition prob = (Condition) resource;
+                        if (prob.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "active")
+                         && !prob.getClinicalStatus().hasCoding("http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "entered-in-error")) {
+                            return true;
+                        } else {
+                            return false;
+                        }
 		}
 		if (section == IPSSection.IMMUNIZATIONS) {
 			return true;
