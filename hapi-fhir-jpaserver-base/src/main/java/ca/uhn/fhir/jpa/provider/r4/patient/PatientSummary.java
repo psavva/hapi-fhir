@@ -20,6 +20,7 @@ import org.hl7.fhir.r4.model.MedicationStatement;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.MedicationAdministration;
 import org.hl7.fhir.r4.model.MedicationDispense;
+import org.hl7.fhir.r4.model.Immunization;        
 import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.Observation.ObservationStatus;
 import org.hl7.fhir.r4.model.Organization;
@@ -406,7 +407,19 @@ public class PatientSummary {
                     }                                                        
 		}
 		if (section == IPSSection.IMMUNIZATIONS) {
-			return true;
+                    if (resource.getResourceType() == ResourceType.Immunization) {
+                        Immunization immun = (Immunization) resource;
+                        if (immun.getStatus() != Immunization.ImmunizationStatus.ENTEREDINERROR) {
+                            return true;
+                        } else {
+                            return false;
+                        }                            
+                    } else if (resource.getResourceType() == ResourceType.DocumentReference) {
+                        // no DocumentReference filtering yet
+                        return true;
+                    } else {
+                        return false;
+                    }                                                        
 		}
 		if (section == IPSSection.PROCEDURES) {
 			return true;
