@@ -10,8 +10,8 @@ a browser.
 	<body>
 <!--*/-->
 
-<div th:with="section=${#strings.arraySplit(resource.meta.profile.get(0).value, '/')[#arrays.length(#strings.arraySplit(resource.meta.profile.get(0).value, '/')) - 1]}">
-	<div th:replace=" :: ${#strings.arraySplit(section, '-')[0]} (entryList=${resource.entry})">Page Content</div>
+<div th:with="section=${#strings.arraySplit(#strings.arraySplit(resource.meta.profile.get(0).value, '/')[#arrays.length(#strings.arraySplit(resource.meta.profile.get(0).value, '/')) - 1], '-')[0]}">
+	<div th:replace=" :: ${section} (entryList=${resource.entry})">Page Content</div>
 </div>
 
 <!--/*-->
@@ -29,7 +29,7 @@ Severity: AllergyIntolerance.reaction.severity.code
 Comments: AllergyIntolerance.note[x].text (display all notes separated by <br /> )
 Onset: AllergyIntolerance.onsetDateTime
  -->
-<div th:fragment="AllergiesAndIntolerances (entryList)">
+<div th:fragment="AllergiesAndIntolerances (entryList)" th:with="section='AllergiesAndIntolerances'">
 	<table class="hapiPropertyTable">
 		<thead>
 			<tr>
@@ -43,20 +43,41 @@ Onset: AllergyIntolerance.onsetDateTime
 			</tr>
 		</thead>
 		<tbody>	
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
-					<td th:text="${entry.resource.resourceType}">Allergen</td> 
-					<td>Status</td>
-					<td>Category</td>
-					<td>Reaction</td>
-					<td>Severity</td>
-					<td>Comments</td>
-					<td>Onset</td>
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
+					<td th:text="*{resource.code.text} ?: *{resource.code.coding.get(0).display}" th:if="*{resource.code.text}">Allergen</td>
+					<td th:replace=":: concat_display (list=*{resource.code.coding})" th:unless="*{resource.code.text}">Allergen</td> 
+					
+					<!-- <td th:replace=":: concat_text (list=*{resource.clinicalStatus.coding})">Status</td> -->
+					<td th:replace=":: concat (list=*{resource.category})" th:if="*{resource.category}">Category</td>
+					
+					<!-- <td th:text="*{resource.reaction.manifestation.text}" th:if="*{resource.reaction and resource.reaction.manifestation and resource.reaction.manifestation.text}">Reaction</td>
+					<td th:replace=":: concat_display (list=*{resource.reaction.manifestation.coding})" th:if="*{resource.reaction and resource.reaction.manifestation and resource.reaction.manifestation.coding} ">Reaction</td> -->
+					
+					<!-- <td th:replace=":: concat_code (list=*{resource.reaction.severity})" th:if="*{resource.reaction}">Severity</td> -->
+					<!-- <td th:replace=":: concat_text (list=*{resource.note})">Comments</td> -->
+					<!-- <td th:text="*{resource.onsetDateTime}">Onset</td> -->
 				</tr>
 			</th:block>
 		</tbody>
 	</table>
 </div>
+
+<td th:fragment="concat (list)" th:each="item : ${list}" th:if="${list}" th:text="${item}">
+	<br />
+</td>
+
+<td th:fragment="concat_display (list)" th:each="item : ${list}" th:if="${list}" th:text="${item.display}">
+	<br />
+</td>
+
+<td th:fragment="concat_code (list)" th:each="item : ${list}" th:if="${list}" th:text="${item.code}">
+	<br />
+</td>
+
+<!-- <td th:fragment="concat_text (list)" th:each="item : ${list}" th:if="${list}" th:text="${item.text} ? '' ">
+	<br />
+</td> -->
 
 <!--/* MedicationSummary */-->
 <!-- 
@@ -72,7 +93,7 @@ Table 2 MedicationStatement
 Medication: MedicationStatement.medicationCodeableConcept.coding[x].display || Medication.code.coding.text || Medication.code.coding.code[x].display
 Status: MedicationStatement.status.display
 Route: MedicationStatement.dosage[x].route.coding[x].display
-Sig: MedicationStatement.dosage [x].text (display all sigs separated by <br /> )
+Sig: MedicationStatement.dosage[x].text (display all sigs separated by <br /> )
 Date:  MedicationStatement.effectiveDateTime
  -->
 <div th:fragment="MedicationSummary (entryList)" th:with="section='MedicationSummary'">
@@ -89,8 +110,8 @@ Date:  MedicationStatement.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -109,8 +130,8 @@ Date:  MedicationStatement.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -138,8 +159,8 @@ Onset Date: Condition.onsetDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -172,8 +193,8 @@ Date: Immunization.occurrenceDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -198,8 +219,8 @@ Date: Procedure.performedDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -226,8 +247,8 @@ Date Recorded: DeviceUseStatement.recordedOn
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -265,8 +286,8 @@ Date: DiagnosticReport.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -282,8 +303,8 @@ Date: DiagnosticReport.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -315,8 +336,8 @@ Date: Observation.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -343,8 +364,8 @@ Date: Observation.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -373,8 +394,8 @@ Date: Observation.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -401,8 +422,8 @@ Onset Date: Condition.onsetDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -431,8 +452,8 @@ Date: ClinicalImpression.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -461,8 +482,8 @@ Planned End: CarePlan.period.end
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
@@ -489,8 +510,8 @@ Date: Consent.dateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}">
-				<tr th:with="resourceType=${#strings.toString(entry.resource.resourceType)}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}' th:id="${section} + '-' + ${iter.index}">
+			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
+				<tr th:id="${section} + '-' + ${iter.index}">
 					<td>Type</td>
 					<td th:text="${entry.resource.resourceType}"></td>
 				</tr>
