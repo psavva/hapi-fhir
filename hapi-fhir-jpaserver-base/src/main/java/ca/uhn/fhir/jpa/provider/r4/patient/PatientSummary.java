@@ -17,6 +17,7 @@ import org.hl7.fhir.r4.model.Narrative;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.AllergyIntolerance;
 import org.hl7.fhir.r4.model.MedicationStatement;
+import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.Observation.ObservationStatus;
 import org.hl7.fhir.r4.model.Organization;
@@ -334,7 +335,28 @@ public class PatientSummary {
                         }
 		}
 		if (section == IPSSection.MEDICATION_SUMMARY) {
-			return true;
+                        if (resource.getResourceType() == ResourceType.MedicationStatement) {
+                            MedicationStatement medstat = (MedicationStatement) resource;
+                            if (medstat.getStatus() == MedicationStatement.MedicationStatementStatus.ACTIVE
+                             || medstat.getStatus() == MedicationStatement.MedicationStatementStatus.INTENDED
+                             || medstat.getStatus() == MedicationStatement.MedicationStatementStatus.UNKNOWN
+                             || medstat.getStatus() == MedicationStatement.MedicationStatementStatus.ONHOLD) {
+                                return true;
+                            } else {
+                                return false;
+                            }                            
+                        } else if (resource.getResourceType() == ResourceType.MedicationRequest) {
+                            MedicationRequest medstat = (MedicationRequest) resource;
+                            if (medstat.getStatus() == MedicationRequest.MedicationRequestStatus.ACTIVE
+                             || medstat.getStatus() == MedicationRequest.MedicationRequestStatus.UNKNOWN
+                             || medstat.getStatus() == MedicationRequest.MedicationRequestStatus.ONHOLD) {
+                                return true;
+                            } else {
+                                return false;
+                            }                                                        
+                        } else {
+                            return false;
+                        }                                                        
 		}
 		if (section == IPSSection.PROBLEM_LIST) {
                         Condition prob = (Condition) resource;
