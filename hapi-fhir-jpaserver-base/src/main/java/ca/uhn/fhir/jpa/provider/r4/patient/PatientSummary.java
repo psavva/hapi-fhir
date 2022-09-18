@@ -141,7 +141,7 @@ public class PatientSummary {
 		Bundle bundle = createIPSBundle();
 		Organization author = createAuthor();
 		Composition composition = createIPSComposition(patient, author);
-		composition = addIPSSections(composition, hashedPrimaries, hashedNarratives);
+		composition = addIPSSections(composition, filteredPrimaries, hashedNarratives);
 		bundle.addEntry().setResource(composition).setFullUrl(formatAsUrn(composition));
 		for (Resource resource : resources) {
 			bundle.addEntry().setResource(resource).setFullUrl(formatAsUrn(resource));
