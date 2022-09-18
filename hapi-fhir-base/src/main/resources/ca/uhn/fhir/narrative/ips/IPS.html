@@ -45,11 +45,27 @@ Onset: AllergyIntolerance.onsetDateTime
 		<tbody>	
 			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
 				<tr th:id="${section} + '-' + ${iter.index}">
-					<td th:text="*{resource.code.text} ?: *{resource.code.coding.get(0).display}" th:if="*{resource.code.text}">Allergen</td>
-					<td th:replace=":: concat_display (list=*{resource.code.coding})" th:unless="*{resource.code.text}">Allergen</td> 
+
+					<th:block th:if="*{!resource.code.empty}">
+						<th:block th:if="*{!resource.code.textElement.empty}">
+							<td th:text="*{resource.code.text}">Allergen</td>
+						</th:block>
+						<th:block th:if="*{!resource.code.coding.empty}">
+							<td th:replace=":: concat_display (list=*{resource.code.coding})">Allergen</td> 
+						</th:block>
+						<td th:if="*{resource.code.coding.empty}" />
+					</th:block>
+					<td th:if="*{resource.code.empty}" />
+											
+					<th:block th:if="*{!resource.clinicalStatus.empty}">
+						<th:block th:if="*{!resource.clinicalStatus.coding.empty}">
+							<td th:replace=":: concat_code (list=*{resource.clinicalStatus.coding})">Status</td>
+						</th:block>
+						<td th:if="*{resource.clinicalStatus.coding.empty}" />
+					</th:block>
+					<td th:if="*{resource.clinicalStatus.empty}" />
 					
-					<!-- <td th:replace=":: concat_text (list=*{resource.clinicalStatus.coding})">Status</td> -->
-					<td th:replace=":: concat (list=*{resource.category})" th:if="*{resource.category}">Category</td>
+					<!-- <td th:replace=":: concat (list=*{resource.category})" th:if="*{resource.category}">Category</td> -->
 					
 					<!-- <td th:text="*{resource.reaction.manifestation.text}" th:if="*{resource.reaction and resource.reaction.manifestation and resource.reaction.manifestation.text}">Reaction</td>
 					<td th:replace=":: concat_display (list=*{resource.reaction.manifestation.coding})" th:if="*{resource.reaction and resource.reaction.manifestation and resource.reaction.manifestation.coding} ">Reaction</td> -->
@@ -63,21 +79,33 @@ Onset: AllergyIntolerance.onsetDateTime
 	</table>
 </div>
 
-<td th:fragment="concat (list)" th:each="item : ${list}" th:if="${list}" th:text="${item}">
-	<br />
+<td th:fragment="concat (list)">
+	<th:block th:each="item : ${list}" th:if="${list}">
+		<th:block th:if="${!item.empty}" th:text="${item}"/>
+		<br />
+	</th:block>
 </td>
 
-<td th:fragment="concat_display (list)" th:each="item : ${list}" th:if="${list}" th:text="${item.display}">
-	<br />
+<td th:fragment="concat_display (list)">
+	<th:block th:each="item : ${list}" th:if="${list}">
+		<th:block th:if="${!item.displayElement.empty}" th:text="${item.displayElement.value}"/>
+		<br />
+	</th:block>
 </td>
 
-<td th:fragment="concat_code (list)" th:each="item : ${list}" th:if="${list}" th:text="${item.code}">
-	<br />
+<td th:fragment="concat_code (list)">
+	<th:block th:each="item : ${list}" th:if="${list}">
+		<th:block th:if="${!item.codeElement.empty}" th:text="${item.codeElement.value}"/>
+		<br />
+	</th:block>
 </td>
 
-<!-- <td th:fragment="concat_text (list)" th:each="item : ${list}" th:if="${list}" th:text="${item.text} ? '' ">
-	<br />
-</td> -->
+<td th:fragment="concat_text (list)">
+	<th:block th:each="item : ${list}" th:if="${list}">
+		<th:block th:if="${item.textElement.empty}" th:text="${item.textElement.value}"/>
+		<br />
+	</th:block>
+</td>
 
 <!--/* MedicationSummary */-->
 <!-- 
