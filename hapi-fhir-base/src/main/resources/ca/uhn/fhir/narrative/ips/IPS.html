@@ -329,6 +329,7 @@ Date: Procedure.performedDateTime
 		<tbody>
 			<th:block th:each="entry,iter : ${entryList}" th:object="${entry}" th:unless='${#strings.equals(#strings.toString(entry.resource.resourceType), "Composition")}'>
 				<tr th:id="${section} + '-' + ${iter.index}">
+					
 					<th:block th:if="*{!resource.code.empty}">
 						<th:block th:if="*{!resource.code.textElement.empty}">
 							<td th:text="*{resource.code.text}">Medical Problems</td>
@@ -340,12 +341,14 @@ Date: Procedure.performedDateTime
 					</th:block>
 					<td th:if="*{resource.code.empty}" />
 					<td th:text="${entry.resource.resourceType}"></td>
-				</tr>
 
 				<th:block th:if="*{!resource.note.empty}">
 					<td th:replace=":: concat_text (list=*{resource.note})">Comments</td>
 				</th:block>
+
 				<td th:if="*{resource.note.empty}" />
+
+			</tr>
 
 			</th:block>
 		</tbody>
