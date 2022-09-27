@@ -26,8 +26,11 @@ import org.hl7.fhir.r4.model.Observation.ObservationStatus;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.DomainResource;
+import org.hl7.fhir.r4.model.Extension;
 // import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.ResourceType;
+import org.hl7.fhir.r4.model.UriType;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 
 import java.util.UUID;
@@ -132,19 +135,22 @@ public class PatientSummary {
 		Map.entry(IPSSection.ADVANCE_DIRECTIVES, "http://hl7.org/fhir/uv/ips/StructureDefinition/AdvanceDirectives-uv-ips")
 	);
 
-	public static Bundle buildFromSearch(IBundleProvider searchSet, FhirContext ctx) {	
+	public static Bundle buildFromSearch(IBundleProvider searchSet, FhirContext ctx) {			
 		List<Resource> searchResources = createResourceList(searchSet.getAllResources());
 		Patient patient = (Patient) searchResources.get(0);
-		HashMap<IPSSection, List<Resource>> initialHashedPrimaries = hashPrimaries(searchResources);
-		List<Resource> expandedResources = addNoInfoResources(searchResources, initialHashedPrimaries, patient);
-		HashMap<IPSSection, List<Resource>> hashedPrimaries = hashPrimaries(expandedResources);
-		HashMap<IPSSection, List<Resource>> filteredPrimaries = filterPrimaries(hashedPrimaries);
-		List<Resource> resources = pruneResources(patient, expandedResources, filteredPrimaries, ctx);
-		HashMap<IPSSection, String> hashedNarratives = createNarratives(filteredPrimaries, resources, ctx);
-
 		Bundle bundle = createIPSBundle();
 		Organization author = createAuthor();
 		Composition composition = createIPSComposition(patient, author);
+
+		HashMap<IPSSection, List<Resource>> initialHashedPrimaries = hashPrimaries(searchResources);
+		List<Resource> expandedResources = addNoInfoResources(searchResources, initialHashedPrimaries, patient);
+		HashMap<IPSSection, List<Resource>> hashedExpandedPrimaries = hashPrimaries(expandedResources);
+		List<Resource> linkedResources = addLinkToResources(expandedResources, hashedExpandedPrimaries, composition);
+		HashMap<IPSSection, List<Resource>> hashedPrimaries = hashPrimaries(linkedResources);
+		HashMap<IPSSection, List<Resource>> filteredPrimaries = filterPrimaries(hashedPrimaries);
+		List<Resource> resources = pruneResources(patient, linkedResources, filteredPrimaries, ctx);
+		HashMap<IPSSection, String> hashedNarratives = createNarratives(filteredPrimaries, resources, ctx);
+
 		composition = addIPSSections(composition, filteredPrimaries, hashedNarratives);
 		bundle.addEntry().setResource(composition).setFullUrl(formatAsUrn(composition));
 		for (Resource resource : resources) {
@@ -245,7 +251,6 @@ public class PatientSummary {
 	}
 
 	private static List<Resource> pruneResources(Patient patient, List<Resource> resources,  HashMap<IPSSection, List<Resource>> hashedPrimaries, FhirContext ctx) {
-		// Stubbed out for now
 	
 		List<String> resourceIds = new ArrayList<String>();
 
@@ -288,6 +293,41 @@ public class PatientSummary {
 
 		return null;
 	}
+
+	private static List<Resource> addLinkToResources(List<Resource> resources, HashMap<IPSSection, List<Resource>> hashedPrimaries, Composition composition) {
+		List<Resource> linkedResources = new ArrayList<Resource>();
+		HashMap<String, String> valueUrls = new HashMap<String, String>();
+		
+		String url = "http://hl7.org/fhir/StructureDefinition/NarrativeLink";
+		String valueUrlBase = composition.getId() + "#"; 
+		
+		for (IPSSection section : hashedPrimaries.keySet()) {
+			String profile = SectionProfiles.get(section);
+			String[] arr = profile.split("/");
+			String profileName = arr[arr.length - 1];
+			String sectionValueUrlBase = valueUrlBase + profileName.split("-uv-")[0];
+
+			for (Resource resource : hashedPrimaries.get(section)) {
+				String valueUrl = sectionValueUrlBase + "-" + resource.getIdElement().getIdPart();
+				valueUrls.put(resource.getIdElement().getIdPart(), valueUrl);
+			}
+		}
+
+		for (Resource resource : resources) {
+			if (valueUrls.containsKey(resource.getIdElement().getIdPart())) {
+				String valueUrl = valueUrls.get(resource.getIdElement().getIdPart());
+				Extension extension = new Extension();
+				extension.setUrl(url);
+				extension.setValue(new UriType(valueUrl));
+				DomainResource domainResource = (DomainResource) resource;
+				domainResource.addExtension(extension);
+				resource = (Resource) domainResource;
+			}
+			linkedResources.add(resource);
+		}
+
+		return linkedResources;
+	} 
 
 	private static HashMap<IPSSection, String> createNarratives(HashMap<IPSSection, List<Resource>> hashedPrimaries, List<Resource> resources, FhirContext ctx) {
 		HashMap<IPSSection, String> hashedNarratives = new HashMap<IPSSection, String>();
