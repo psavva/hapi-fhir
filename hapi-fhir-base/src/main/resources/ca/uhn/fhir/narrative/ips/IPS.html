@@ -12,7 +12,9 @@ a browser.
 
 <div th:with="profile=${resource.getMeta().getProfile().get(0).getValueAsString()}">
 	<th:block th:with="section=${#strings.arraySplit(#strings.arraySplit(profile, '/')[#arrays.length(#strings.arraySplit(profile, '/')) - 1], '-')[0]}">
-		<th:block th:replace=" :: ${section} (entryList=${resource.getEntry()})">Page Content</th:block>	
+		<th:block th:with="extensionUrl='http://hl7.org/fhir/StructureDefinition/NarrativeLink'">
+			<th:block th:replace=" :: ${section} (entryList=${resource.getEntry()})">Page Content</th:block>	
+		</th:block>
 	</th:block>
 </div>
 
@@ -46,16 +48,18 @@ Onset: AllergyIntolerance.onsetDateTime
 			</tr>
 		</thead>
 		<tbody>	
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}">
-				<tr th:unless='*{getResourceType().name() == "Composition"}' th:id="${section} + '-' + ${iter.index}">
-					<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Allergen</td>									
-					<td th:insert=":: codeableConcept (cc=*{getClinicalStatus()},attr='code')">Status</td>
-					<td th:insert=":: concat (list=*{getCategory()},attr='value')">Category</td>
-					<td th:insert=":: concatReactionManifestation (list=*{getReaction()})">Reaction</td>
-					<td th:insert=":: concat (list=*{getReaction()},attr='severity')">Severity</td>
-					<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
-					<td th:text="*{getOnsetDateTimeType().getValue()}">Onset</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() != "Composition"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">
+						<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Allergen</td>									
+						<td th:insert=":: codeableConcept (cc=*{getClinicalStatus()},attr='code')">Status</td>
+						<td th:insert=":: concat (list=*{getCategory()},attr='value')">Category</td>
+						<td th:insert=":: concatReactionManifestation (list=*{getReaction()})">Reaction</td>
+						<td th:insert=":: concat (list=*{getReaction()},attr='severity')">Severity</td>
+						<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
+						<td th:text="*{getOnsetDateTimeType().getValue()}">Onset</td>
+					</tr>
+				</th:block>	
 			</th:block>
 		</tbody>
 	</table>
@@ -92,15 +96,17 @@ Date:  MedicationStatement.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}">
-				<tr th:if='*{getResourceType().name() == "MedicationRequest"}' th:id="${section} + '-' + ${iter.index}">			
-					<td th:insert=":: renderMedication (medication=*{getMedication()})">Medication</td>
-					<td th:text="*{getStatus().getDisplay()}">Status</td>
-					<td th:insert=":: concatDosageRoute (list=*{getDosageInstruction()})">Route</td>
-					<td th:insert=":: concat (list=*{getDosageInstruction()},attr='text')">Sig</td>
-					<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
-					<td th:text="*{getAuthoredOnElement().getValue()}">Authored Date</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() == "MedicationRequest"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">			
+						<td th:insert=":: renderMedication (medication=*{getMedication()})">Medication</td>
+						<td th:text="*{getStatus().getDisplay()}">Status</td>
+						<td th:insert=":: concatDosageRoute (list=*{getDosageInstruction()})">Route</td>
+						<td th:insert=":: concat (list=*{getDosageInstruction()},attr='text')">Sig</td>
+						<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
+						<td th:text="*{getAuthoredOnElement().getValue()}">Authored Date</td>
+					</tr>
+				</th:block>	
 			</th:block>
 		</tbody>
 	</table>
@@ -117,14 +123,16 @@ Date:  MedicationStatement.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}" >
-				<tr th:if='*{getResourceType().name() == "MedicationStatement"}' th:id="${section} + '-' + ${iter.index}">
-					<td th:insert=":: renderMedication (medication=*{getMedication()})">Medication</td>
-					<td th:text="*{getStatus().getDisplay()}">Status</td>
-					<td th:insert=":: concatDosageRoute (list=*{getDosage()})">Route</td>
-					<td th:insert=":: concat (list=*{getDosage()},attr='text')">Sig</td>
-					<td th:insert=":: renderEffective (effective=*{getEffective()})">Date</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() == "MedicationStatement"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">
+						<td th:insert=":: renderMedication (medication=*{getMedication()})">Medication</td>
+						<td th:text="*{getStatus().getDisplay()}">Status</td>
+						<td th:insert=":: concatDosageRoute (list=*{getDosage()})">Route</td>
+						<td th:insert=":: concat (list=*{getDosage()},attr='text')">Sig</td>
+						<td th:insert=":: renderEffective (effective=*{getEffective()})">Date</td>
+					</tr>
+				</th:block>
 			</th:block>
 		</tbody>
 	</table>
@@ -150,13 +158,15 @@ Onset Date: Condition.onsetDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}">
-				<tr th:unless='*{getResourceType().name() == "Composition"}' th:id="${section} + '-' + ${iter.index}">
-					<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Medical Problems</td>
-					<td th:insert=":: codeableConcept (cc=*{getClinicalStatus()},attr='code')">Status</td>
-					<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
-					<td th:insert=":: renderOnset (onset=*{getOnset()})">Onset Date</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() != "Composition"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">
+						<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Medical Problems</td>
+						<td th:insert=":: codeableConcept (cc=*{getClinicalStatus()},attr='code')">Status</td>
+						<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
+						<td th:insert=":: renderOnset (onset=*{getOnset()})">Onset Date</td>
+					</tr>
+				</th:block>
 			</th:block>
 		</tbody>
 	</table>
@@ -187,16 +197,18 @@ Date: Immunization.occurrenceDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}">
-				<tr th:unless='*{getResourceType().name() == "Composition"}' th:id="${section} + '-' + ${iter.index}">				
-					<td th:insert=":: codeableConcept (cc=*{getVaccineCode()},attr='display')">Immunization</td>
-					<td th:text="*{getStatusElement().value}">Status</td>
-					<td th:insert=":: concatDoseNumber (list=*{getProtocolApplied()})">Comments</td>
-					<td th:insert=":: renderOrganization (org=*{getManufacturer().getResource()})">Manufacturer</td>
-					<td th:text="*{getLotNumber()}">Lot Number</td>
-					<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
-					<td th:insert=":: renderOccurrence (occurrence=*{getOccurrence()})">Date</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() != "Composition"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">				
+						<td th:insert=":: codeableConcept (cc=*{getVaccineCode()},attr='display')">Immunization</td>
+						<td th:text="*{getStatusElement().value}">Status</td>
+						<td th:insert=":: concatDoseNumber (list=*{getProtocolApplied()})">Comments</td>
+						<td th:insert=":: renderOrganization (org=*{getManufacturer().getResource()})">Manufacturer</td>
+						<td th:text="*{getLotNumber()}">Lot Number</td>
+						<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
+						<td th:insert=":: renderOccurrence (occurrence=*{getOccurrence()})">Date</td>
+					</tr>
+				</th:block>
 			</th:block>
 		</tbody>
 	</table>
@@ -219,12 +231,14 @@ Date: Procedure.performedDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}">
-				<tr th:unless='*{getResourceType().name() == "Composition"}' th:id="${section} + '-' + ${iter.index}">
-					<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Procedure</td>
-					<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
-					<td th:insert=":: renderPerformed (performed=*{getPerformed()})">Date</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() != "Composition"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">
+						<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Procedure</td>
+						<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
+						<td th:insert=":: renderPerformed (performed=*{getPerformed()})">Date</td>
+					</tr>
+				</th:block>
 			</th:block>
 		</tbody>
 	</table>
@@ -249,13 +263,15 @@ Date Recorded: DeviceUseStatement.recordedOn
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}">
-				<tr th:unless='*{getResourceType().name() == "Composition"}' th:id="${section} + '-' + ${iter.index}">		
-					<td th:insert=":: renderDevice (device=*{getDevice().getResource()})">Device</td>
-					<td th:text="*{getStatusElement().value}">Status</td>
-					<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
-					<td th:insert=":: renderRecorded (recorded=*{getRecorded()})">Date Recorded</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() != "Composition"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">		
+						<td th:insert=":: renderDevice (device=*{getDevice().getResource()})">Device</td>
+						<td th:text="*{getStatusElement().value}">Status</td>
+						<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
+						<td th:insert=":: renderRecorded (recorded=*{getRecorded()})">Date Recorded</td>
+					</tr>
+				</th:block>
 			</th:block>
 		</tbody>
 	</table>
@@ -291,16 +307,18 @@ Date: DiagnosticReport.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}">
-				<tr th:if='*{getResourceType().name() == "Observation"}' th:id="${section} + '-' + ${iter.index}">
-					<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Code</td>
-					<td th:insert=":: renderValue (value=*{getValue()})">Result</td>
-					<td th:insert=":: renderValueUnit (value=*{getValue()})">Unit</td>
-					<td th:insert=":: firstFromCodeableConceptList (list=*{getInterpretation()})">Interpretation</td>
-					<td th:insert=":: concatReferenceRange (list=*{getReferenceRange()})">Reference Range</td>
-					<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
-					<td th:insert=":: renderEffective (effective=*{getEffective()})">Date</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() == "Observation"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">
+						<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Code</td>
+						<td th:insert=":: renderValue (value=*{getValue()})">Result</td>
+						<td th:insert=":: renderValueUnit (value=*{getValue()})">Unit</td>
+						<td th:insert=":: firstFromCodeableConceptList (list=*{getInterpretation()})">Interpretation</td>
+						<td th:insert=":: concatReferenceRange (list=*{getReferenceRange()})">Reference Range</td>
+						<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
+						<td th:insert=":: renderEffective (effective=*{getEffective()})">Date</td>
+					</tr>
+				</th:block>
 			</th:block>
 		</tbody>
 	</table>
@@ -314,11 +332,13 @@ Date: DiagnosticReport.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}">
-				<tr th:if='*{getResourceType().name() == "DiagnosticReport"}' th:id="${section} + '-' + ${iter.index}">
-					<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Device</td>
-					<td th:insert=":: renderEffective (effective=*{getEffective()})">Date</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() == "DiagnosticReport"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">
+						<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Device</td>
+						<td th:insert=":: renderEffective (effective=*{getEffective()})">Date</td>
+					</tr>
+				</th:block>
 			</th:block>
 		</tbody>
 	</table>
@@ -348,15 +368,17 @@ Date: Observation.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}">
-				<tr th:unless='*{getResourceType().name() == "Composition"}' th:id="${section} + '-' + ${iter.index}">
-					<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Code</td>
-					<td th:insert=":: renderValue (value=*{getValue()})">Result</td>
-					<td th:insert=":: renderValueUnit (value=*{getValue()})">Unit</td>
-					<td th:replace=":: firstFromCodeableConceptList (list=*{getInterpretation()})">Interpretation</td>
-					<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
-					<td th:insert=":: renderEffective (effective=*{getEffective()})">Date</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() != "Composition"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">
+						<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Code</td>
+						<td th:insert=":: renderValue (value=*{getValue()})">Result</td>
+						<td th:insert=":: renderValueUnit (value=*{getValue()})">Unit</td>
+						<td th:replace=":: firstFromCodeableConceptList (list=*{getInterpretation()})">Interpretation</td>
+						<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
+						<td th:insert=":: renderEffective (effective=*{getEffective()})">Date</td>
+					</tr>
+				</th:block>
 			</th:block>
 		</tbody>
 	</table>
@@ -381,13 +403,15 @@ Date: Observation.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}">
-				<tr th:unless='*{getResourceType().name() == "Composition"}' th:id="${section} + '-' + ${iter.index}">
-					<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Code</td>
-					<td th:insert=":: renderValue (value=*{getValue()})">Result</td>
-					<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
-					<td th:insert=":: renderEffective (effective=*{getEffective()})">Date</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() != "Composition"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">
+						<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Code</td>
+						<td th:insert=":: renderValue (value=*{getValue()})">Result</td>
+						<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
+						<td th:insert=":: renderEffective (effective=*{getEffective()})">Date</td>
+					</tr>
+				</th:block>
 			</th:block>
 		</tbody>
 	</table>
@@ -414,14 +438,16 @@ Date: Observation.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}">
-				<tr th:unless='*{getResourceType().name() == "Composition"}' th:id="${section} + '-' + ${iter.index}">
-					<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Code</td>
-					<td th:insert=":: renderValue (value=*{getValue()})">Result</td>
-					<td th:insert=":: renderValueUnit (value=*{getValue()})">Unit</td>
-					<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
-					<td th:insert=":: renderEffective (effective=*{getEffective()})">Date</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() != "Composition"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">
+						<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Code</td>
+						<td th:insert=":: renderValue (value=*{getValue()})">Result</td>
+						<td th:insert=":: renderValueUnit (value=*{getValue()})">Unit</td>
+						<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
+						<td th:insert=":: renderEffective (effective=*{getEffective()})">Date</td>
+					</tr>
+				</th:block>
 			</th:block>
 		</tbody>
 	</table>
@@ -446,13 +472,15 @@ Onset Date: Condition.onsetDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}">
-				<tr th:unless='*{getResourceType().name() == "Composition"}' th:id="${section} + '-' + ${iter.index}">
-					<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Medical Problem</td>					
-					<td th:insert=":: codeableConcept (cc=*{getClinicalStatus()},attr='code')">Status</td>
-					<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
-					<td th:insert=":: renderOnset (onset=*{getOnset()})">Onset Date</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() != "Composition"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">
+						<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Medical Problem</td>					
+						<td th:insert=":: codeableConcept (cc=*{getClinicalStatus()},attr='code')">Status</td>
+						<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
+						<td th:insert=":: renderOnset (onset=*{getOnset()})">Onset Date</td>
+					</tr>
+				</th:block>
 			</th:block>
 		</tbody>
 	</table>
@@ -479,14 +507,16 @@ Date: ClinicalImpression.effectiveDateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}">
-				<tr th:unless='*{getResourceType().name() == "Composition"}' th:id="${section} + '-' + ${iter.index}">
-					<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Assessment</td>
-					<td th:text="*{getStatus().getCode()}">Status</td>
-					<td th:text="*{getSummary()}">Finding</td>
-					<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
-					<td th:insert=":: renderEffective (effective=*{getEffective()})">Date</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() != "Composition"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">
+						<td th:insert=":: codeableConcept (cc=*{getCode()},attr='display')">Assessment</td>
+						<td th:text="*{getStatus().getCode()}">Status</td>
+						<td th:text="*{getSummary()}">Finding</td>
+						<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
+						<td th:insert=":: renderEffective (effective=*{getEffective()})">Date</td>
+					</tr>
+				</th:block>
 			</th:block>
 		</tbody>
 	</table>
@@ -513,14 +543,16 @@ Planned End: CarePlan.period.end
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}">
-				<tr th:unless='*{getResourceType().name() == "Composition"}' th:id="${section} + '-' + ${iter.index}">
-					<td th:text="*{getDescription()">Activity</td>
-					<td th:text="*{getIntent().getCode()}">Intent</td>
-					<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
-					<td th:text="*{getPeriod().getStartElement().getValue()}">Planned Start</td>
-					<td th:text="*{getPeriod().getEndElement().getValue()}">Planned End</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() != "Composition"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">
+						<td th:text="*{getDescription()">Activity</td>
+						<td th:text="*{getIntent().getCode()}">Intent</td>
+						<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
+						<td th:text="*{getPeriod().getStartElement().getValue()}">Planned Start</td>
+						<td th:text="*{getPeriod().getEndElement().getValue()}">Planned End</td>
+					</tr>
+				</th:block>
 			</th:block>
 		</tbody>
 	</table>
@@ -545,14 +577,16 @@ Date: Consent.dateTime
 			</tr>
 		</thead>
 		<tbody>
-			<th:block th:each="entry,iter : ${entryList}" th:object="${entry.getResource()}">
-				<tr th:unless='*{getResourceType().name() == "Composition"}' th:id="${section} + '-' + ${iter.index}">
-					<td th:insert=":: codeableConcept (cc=*{getScope()},attr='display')">Scope</td>
-					<td th:text="*{getStatus().getCode()}">Status</td>
-					<td th:text="*{getdateTimeType().getValue()}">Action Controlled</td>
-					<td th:insert=":: concatCodeableConcept (list=*{getProvision().getAction()})">Action Controlled</td>
-					<td th:text="*{getDateTimeElement().getValue()}">Date</td>
-				</tr>
+			<th:block th:each="entry : ${entryList}" th:object="${entry.getResource()}">
+				<th:block th:if='*{getResourceType().name() != "Composition"}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">
+					<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">
+						<td th:insert=":: codeableConcept (cc=*{getScope()},attr='display')">Scope</td>
+						<td th:text="*{getStatus().getCode()}">Status</td>
+						<td th:text="*{getdateTimeType().getValue()}">Action Controlled</td>
+						<td th:insert=":: concatCodeableConcept (list=*{getProvision().getAction()})">Action Controlled</td>
+						<td th:text="*{getDateTimeElement().getValue()}">Date</td>
+					</tr>
+				</th:block>
 			</th:block>
 		</tbody>
 	</table>
