@@ -28,9 +28,9 @@ import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.Extension;
-// import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.UriType;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 
 import java.util.UUID;
@@ -138,39 +138,37 @@ public class PatientSummary {
 	public static Bundle buildFromSearch(IBundleProvider searchSet, FhirContext ctx) {			
 		List<Resource> searchResources = createResourceList(searchSet.getAllResources());
 		Patient patient = (Patient) searchResources.get(0);
-		Bundle bundle = createIPSBundle();
 		Organization author = createAuthor();
 		Composition composition = createIPSComposition(patient, author);
 
-		HashMap<IPSSection, List<Resource>> initialHashedPrimaries = hashPrimaries(searchResources);
-		List<Resource> expandedResources = addNoInfoResources(searchResources, initialHashedPrimaries, patient);
-		HashMap<IPSSection, List<Resource>> hashedExpandedPrimaries = hashPrimaries(expandedResources);
-		List<Resource> linkedResources = addLinkToResources(expandedResources, hashedExpandedPrimaries, composition);
-		HashMap<IPSSection, List<Resource>> hashedPrimaries = hashPrimaries(linkedResources);
-		HashMap<IPSSection, List<Resource>> filteredPrimaries = filterPrimaries(hashedPrimaries);
-		List<Resource> resources = pruneResources(patient, linkedResources, filteredPrimaries, ctx);
-		HashMap<IPSSection, String> hashedNarratives = createNarratives(filteredPrimaries, resources, ctx);
+		ImmutablePair<List<Resource>, HashMap<IPSSection, List<Resource>>> resourceTuple = buildResourceTuple(searchResources, ctx, composition, patient);
+		List<Resource> resources = resourceTuple.getLeft();
+		HashMap<IPSSection, List<Resource>> sectionPrimaries = resourceTuple.getRight();
 
-		composition = addIPSSections(composition, filteredPrimaries, hashedNarratives);
+		HashMap<IPSSection, String> sectionNarratives = createNarratives(sectionPrimaries, resources, ctx);
+		composition = addIPSSections(composition, sectionPrimaries, sectionNarratives);
+
+		Bundle bundle = createIPSBundle(composition, resources, author);
+
+		return bundle;
+	}
+
+
+	private static Bundle createIPSBundle(Composition composition, List<Resource> resources, Organization author) {
+		Identifier iden = new Identifier();
+		iden.setSystem("urn:ietf:rfc:4122");
+		iden.setValue(UUID.randomUUID().toString());
+
+		Bundle bundle = new Bundle();
+		bundle.setType(BundleType.DOCUMENT)
+			.setTimestamp(new Date())
+			.setIdentifier(iden);
+			
 		bundle.addEntry().setResource(composition).setFullUrl(formatAsUrn(composition));
 		for (Resource resource : resources) {
 			bundle.addEntry().setResource(resource).setFullUrl(formatAsUrn(resource));
 		}
 		bundle.addEntry().setResource(author).setFullUrl(formatAsUrn(author));
-		return bundle;
-	}
-
-	private static Bundle createIPSBundle() {
-		Bundle bundle = new Bundle();
-		bundle.setType(BundleType.DOCUMENT)
-			.setTimestamp(new Date());
-
-		Identifier iden = new Identifier();
-		iden.setSystem("urn:ietf:rfc:4122");
-		iden.setValue(UUID.randomUUID().toString());
-
-		bundle.setIdentifier(iden);
-                        //.setId(IdDt.newRandomUuid());		
 		return bundle;
 	}
 
@@ -195,6 +193,18 @@ public class PatientSummary {
 		return resourceList;
 	}
 
+	private static ImmutablePair<List<Resource>, HashMap<IPSSection, List<Resource>>> buildResourceTuple(List<Resource> searchResources, FhirContext ctx, Composition composition, Patient patient) {
+		HashMap<IPSSection, List<Resource>> initialHashedPrimaries = hashPrimaries(searchResources);
+		List<Resource> expandedResources = addNoInfoResources(searchResources, initialHashedPrimaries, patient);
+		HashMap<IPSSection, List<Resource>> hashedExpandedPrimaries = hashPrimaries(expandedResources);
+		List<Resource> linkedResources = addLinkToResources(expandedResources, hashedExpandedPrimaries, composition);
+		HashMap<IPSSection, List<Resource>> hashedPrimaries = hashPrimaries(linkedResources);
+		HashMap<IPSSection, List<Resource>> filteredPrimaries = filterPrimaries(hashedPrimaries);
+		List<Resource> resources = pruneResources(patient, linkedResources, filteredPrimaries, ctx);
+
+		return new ImmutablePair<List<Resource>, HashMap<IPSSection, List<Resource>>>(resources, filteredPrimaries);
+	}
+
 	private static HashMap<IPSSection, List<Resource>> hashPrimaries(List<Resource> resourceList) {
 		HashMap<IPSSection, List<Resource>> iPSResourceMap = new HashMap<IPSSection, List<Resource>>();
 
@@ -214,19 +224,19 @@ public class PatientSummary {
 		return iPSResourceMap;
 	}
 
-	private static List<Resource> addNoInfoResources(List<Resource> resources,  HashMap<IPSSection, List<Resource>> hashedPrimaries, Patient patient) {
+	private static List<Resource> addNoInfoResources(List<Resource> resources,  HashMap<IPSSection, List<Resource>> sectionPrimaries, Patient patient) {
 
-		if (hashedPrimaries.get(IPSSection.ALLERGY_INTOLERANCE) == null) {
+		if (sectionPrimaries.get(IPSSection.ALLERGY_INTOLERANCE) == null) {
 			AllergyIntolerance noInfoAllergies = noInfoAllergies(patient);
 			resources.add(noInfoAllergies);
 		}
 
-		if (hashedPrimaries.get(IPSSection.MEDICATION_SUMMARY) == null) {
+		if (sectionPrimaries.get(IPSSection.MEDICATION_SUMMARY) == null) {
 			MedicationStatement noInfoMedications = noInfoMedications(patient);
 			resources.add(noInfoMedications);
 		}
 
-		if (hashedPrimaries.get(IPSSection.PROBLEM_LIST) == null) {
+		if (sectionPrimaries.get(IPSSection.PROBLEM_LIST) == null) {
 			Condition noInfoProblems = noInfoProblems(patient);
 			resources.add(noInfoProblems);
 		}
@@ -234,11 +244,11 @@ public class PatientSummary {
 		return resources;
 	}
 
-	private static HashMap<IPSSection, List<Resource>> filterPrimaries(HashMap<IPSSection, List<Resource>> hashedPrimaries) {
+	private static HashMap<IPSSection, List<Resource>> filterPrimaries(HashMap<IPSSection, List<Resource>> sectionPrimaries) {
 		HashMap<IPSSection, List<Resource>> filteredPrimaries = new HashMap<IPSSection, List<Resource>>();
-		for ( IPSSection section : hashedPrimaries.keySet() ) {
+		for ( IPSSection section : sectionPrimaries.keySet() ) {
 			List<Resource> filteredList = new ArrayList<Resource>();
-			for (Resource resource : hashedPrimaries.get(section)) {
+			for (Resource resource : sectionPrimaries.get(section)) {
 				if (passesFilter(section, resource)) {
 					filteredList.add(resource);
 				}
@@ -250,7 +260,7 @@ public class PatientSummary {
 		return filteredPrimaries;
 	}
 
-	private static List<Resource> pruneResources(Patient patient, List<Resource> resources,  HashMap<IPSSection, List<Resource>> hashedPrimaries, FhirContext ctx) {
+	private static List<Resource> pruneResources(Patient patient, List<Resource> resources,  HashMap<IPSSection, List<Resource>> sectionPrimaries, FhirContext ctx) {
 	
 		List<String> resourceIds = new ArrayList<String>();
 
@@ -258,8 +268,8 @@ public class PatientSummary {
 
 		recursivePrune(resourceIds, followedIds, patient, ctx);
 
-		for (IPSSection section : hashedPrimaries.keySet()) {
-			for (Resource resource : hashedPrimaries.get(section)) {
+		for (IPSSection section : sectionPrimaries.keySet()) {
+			for (Resource resource : sectionPrimaries.get(section)) {
 				recursivePrune(resourceIds, followedIds, resource, ctx);
 			}
 		}
@@ -294,20 +304,20 @@ public class PatientSummary {
 		return null;
 	}
 
-	private static List<Resource> addLinkToResources(List<Resource> resources, HashMap<IPSSection, List<Resource>> hashedPrimaries, Composition composition) {
+	private static List<Resource> addLinkToResources(List<Resource> resources, HashMap<IPSSection, List<Resource>> sectionPrimaries, Composition composition) {
 		List<Resource> linkedResources = new ArrayList<Resource>();
 		HashMap<String, String> valueUrls = new HashMap<String, String>();
 		
 		String url = "http://hl7.org/fhir/StructureDefinition/NarrativeLink";
 		String valueUrlBase = composition.getId() + "#"; 
 		
-		for (IPSSection section : hashedPrimaries.keySet()) {
+		for (IPSSection section : sectionPrimaries.keySet()) {
 			String profile = SectionProfiles.get(section);
 			String[] arr = profile.split("/");
 			String profileName = arr[arr.length - 1];
 			String sectionValueUrlBase = valueUrlBase + profileName.split("-uv-")[0];
 
-			for (Resource resource : hashedPrimaries.get(section)) {
+			for (Resource resource : sectionPrimaries.get(section)) {
 				String valueUrl = sectionValueUrlBase + "-" + resource.getIdElement().getIdPart();
 				valueUrls.put(resource.getIdElement().getIdPart(), valueUrl);
 			}
@@ -329,12 +339,13 @@ public class PatientSummary {
 		return linkedResources;
 	} 
 
-	private static HashMap<IPSSection, String> createNarratives(HashMap<IPSSection, List<Resource>> hashedPrimaries, List<Resource> resources, FhirContext ctx) {
+	private static HashMap<IPSSection, String> createNarratives(HashMap<IPSSection, List<Resource>> sectionPrimaries, List<Resource> resources, FhirContext ctx) {
 		HashMap<IPSSection, String> hashedNarratives = new HashMap<IPSSection, String>();
 
-		for (IPSSection section : hashedPrimaries.keySet()) {
+		for (IPSSection section : sectionPrimaries.keySet()) {
 			// This method msy need to also take in the resources list for things such as medications and devices.
-			String narrative = createSectionNarrative(section, hashedPrimaries.get(section), ctx);
+			String narrative = createSectionNarrative(section, sectionPrimaries.get(section), ctx);
+			// String narrative = createSectionNarrative(section, resources, ctx);
 			hashedNarratives.put(section, narrative);
 		}
 
@@ -512,11 +523,11 @@ public class PatientSummary {
 		return composition;
 	}
 
-	private static Composition addIPSSections(Composition composition, HashMap<IPSSection, List<Resource>> hashedPrimaries, HashMap<IPSSection, String> hashedNarratives) {
+	private static Composition addIPSSections(Composition composition, HashMap<IPSSection, List<Resource>> sectionPrimaries, HashMap<IPSSection, String> hashedNarratives) {
 		// Add sections
 		for (IPSSection iPSSection : IPSSection.values()) {
-			if (hashedPrimaries.get(iPSSection) != null && hashedPrimaries.get(iPSSection).size() > 0) {
-				Composition.SectionComponent section = createSection(SectionText.get(iPSSection), hashedPrimaries.get(iPSSection), hashedNarratives.get(iPSSection));
+			if (sectionPrimaries.get(iPSSection) != null && sectionPrimaries.get(iPSSection).size() > 0) {
+				Composition.SectionComponent section = createSection(SectionText.get(iPSSection), sectionPrimaries.get(iPSSection), hashedNarratives.get(iPSSection));
 				composition.addSection(section);
 			}
 		}
