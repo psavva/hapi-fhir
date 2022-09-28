@@ -153,7 +153,6 @@ public class PatientSummary {
 		return bundle;
 	}
 
-
 	private static Bundle createIPSBundle(Composition composition, List<Resource> resources, Organization author) {
 		Identifier iden = new Identifier();
 		iden.setSystem("urn:ietf:rfc:4122");
@@ -350,9 +349,7 @@ public class PatientSummary {
 		HashMap<IPSSection, String> hashedNarratives = new HashMap<IPSSection, String>();
 
 		for (IPSSection section : sectionPrimaries.keySet()) {
-			// This method msy need to also take in the resources list for things such as medications and devices.
-			String narrative = createSectionNarrative(section, sectionPrimaries.get(section), ctx);
-			// String narrative = createSectionNarrative(section, resources, ctx);
+			String narrative = createSectionNarrative(section, resources, ctx);
 			hashedNarratives.put(section, narrative);
 		}
 
