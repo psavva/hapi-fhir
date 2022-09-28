@@ -260,24 +260,30 @@ public class PatientSummary {
 		return filteredPrimaries;
 	}
 
-	private static List<Resource> pruneResources(Patient patient, List<Resource> resources,  HashMap<IPSSection, List<Resource>> sectionPrimaries, FhirContext ctx) {
-	
+	private static List<Resource> pruneResources(Patient patient, List<Resource> resources,  HashMap<IPSSection, List<Resource>> sectionPrimaries, FhirContext ctx) {		
 		List<String> resourceIds = new ArrayList<String>();
-
 		List<String> followedIds = new ArrayList<String>();
 
-		recursivePrune(resourceIds, followedIds, patient, ctx);
+		HashMap<String, Resource> resourcesById = new HashMap<String, Resource>();
+		for (Resource resource : resources) {
+			resourcesById.put(resource.getIdElement().getIdPart(), resource);
+		}
+		String patientId = patient.getIdElement().getIdPart();
+		resourcesById.put(patientId, patient);
+		
+		recursivePrune(patientId, resourceIds, followedIds, resourcesById, ctx);
 
 		for (IPSSection section : sectionPrimaries.keySet()) {
 			for (Resource resource : sectionPrimaries.get(section)) {
-				recursivePrune(resourceIds, followedIds, resource, ctx);
+				String resourceId = resource.getIdElement().getIdPart();
+				recursivePrune(resourceId, resourceIds, followedIds, resourcesById, ctx);
 			}
 		}
 
 		List<Resource> prunedResources = new ArrayList<Resource>();
 
 		for (Resource resource : resources) {
-			if (resourceIds.contains(resource.getId())) {
+			if (resourceIds.contains(resource.getIdElement().getIdPart())) {
 				prunedResources.add(resource);
 			}
 		}
@@ -285,21 +291,22 @@ public class PatientSummary {
 		return prunedResources;
 	}
 
-	private static Void recursivePrune(List<String> resourceIds,  List<String> followedIds, Resource resource, FhirContext ctx) {
-		String resourceId = resource.getIdElement().getValue();
-		
+	private static Void recursivePrune(String resourceId, List<String> resourceIds,  List<String> followedIds, HashMap<String, Resource> resourcesById, FhirContext ctx) {
 		if (!resourceIds.contains(resourceId)) {
 			resourceIds.add(resourceId);
 		}
-		
-		ctx.newTerser().getAllResourceReferences(resource).stream()
-		.map( r -> r.getResourceReference().getReferenceElement().getValue())
-		.forEach(id ->  {
-			if (!followedIds.contains(id)) {
-				followedIds.add(id);
-				recursivePrune(resourceIds, followedIds, resource, ctx);
-			}
-		});
+
+		Resource resource = resourcesById.get(resourceId);
+		if (resource != null) {
+			ctx.newTerser().getAllResourceReferences(resource).stream()
+			.map( r -> r.getResourceReference().getReferenceElement().getIdPart() )
+			.forEach( id ->  {
+				if (!followedIds.contains(id)) {
+					followedIds.add(id);
+					recursivePrune(id, resourceIds, followedIds, resourcesById, ctx);
+				}
+			});
+		}
 
 		return null;
 	}
