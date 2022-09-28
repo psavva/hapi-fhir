@@ -33,7 +33,7 @@ Severity: AllergyIntolerance.reaction.severity.code
 Comments: AllergyIntolerance.note[x].text (display all notes separated by <br /> )
 Onset: AllergyIntolerance.onsetDateTime
  -->
-<div th:fragment="AllergiesAndIntolerances (entryList)" th:with="section='AllergiesAndIntolerances'">
+<th:block th:fragment="AllergiesAndIntolerances (entryList)" th:with="section='AllergiesAndIntolerances'">
 	<table class="hapiPropertyTable">
 		<caption>Allergies And Intolerances</caption>
 		<thead>
@@ -65,7 +65,7 @@ Onset: AllergyIntolerance.onsetDateTime
 			</th:block>
 		</tbody>
 	</table>
-</div>
+</th:block>
 
 <!--/* MedicationSummary */-->
 <!-- 
@@ -84,7 +84,7 @@ Route: MedicationStatement.dosage[x].route.coding[x].display
 Sig: MedicationStatement.dosage[x].text (display all sigs separated by <br /> )
 Date:  MedicationStatement.effectiveDateTime
  -->
-<div th:fragment="MedicationSummary (entryList)" th:with="section='MedicationSummary'">
+<th:block th:fragment="MedicationSummary (entryList)" th:with="section='MedicationSummary'">
 	<table class="hapiPropertyTable">
 		<caption>Medication Summary: Medication Requests</caption>
 		<thead>
@@ -146,7 +146,7 @@ Date:  MedicationStatement.effectiveDateTime
 			</th:block>
 		</tbody>
 	</table>
-</div>
+</th:block>
 
 <!--/* ProblemList */-->
 <!-- 
@@ -155,7 +155,7 @@ Status: Condition.clinicalStatus.coding[x].display
 Comments: Condition.note[x].text (display all notes separated by <br /> )
 Onset Date: Condition.onsetDateTime
  -->
-<div th:fragment="ProblemList (entryList)" th:with="section='ProblemList'">
+<th:block th:fragment="ProblemList (entryList)" th:with="section='ProblemList'">
 	<table class="hapiPropertyTable">
 		<caption>Problem List</caption>
 		<thead>
@@ -181,7 +181,7 @@ Onset Date: Condition.onsetDateTime
 			</th:block>
 		</tbody>
 	</table>
-</div>
+</th:block>
 
 <!--/* Immunizations */-->
 <!-- 
@@ -193,7 +193,7 @@ Lot Number: Immunization.lotNumber
 Comments: Immunization.note[x].text (display all notes separated by <br /> )
 Date: Immunization.occurrenceDateTime
  -->
-<div th:fragment="Immunizations (entryList)" th:with="section='Immunizations'">
+<th:block th:fragment="Immunizations (entryList)" th:with="section='Immunizations'">
 	<table class="hapiPropertyTable">
 		<caption>Immunizations</caption>
 		<thead>
@@ -225,7 +225,7 @@ Date: Immunization.occurrenceDateTime
 			</th:block>
 		</tbody>
 	</table>
-</div>
+</th:block>
 
 <!--/* HistoryOfProcedures */-->
 <!-- 
@@ -233,7 +233,7 @@ Procedure: Procedure.code.text || Procedure.code.coding[x].display
 Comments: Procedure.note[x].text(display all notes separated by <br /> )
 Date: Procedure.performedDateTime
  -->
-<div th:fragment="HistoryOfProcedures (entryList)" th:with="section='HistoryOfProcedures'">
+<th:block th:fragment="HistoryOfProcedures (entryList)" th:with="section='HistoryOfProcedures'">
 	<table class="hapiPropertyTable">
 		<caption>History Of Procedures</caption>
 		<thead>
@@ -257,7 +257,7 @@ Date: Procedure.performedDateTime
 			</th:block>
 		</tbody>
 	</table>
-</div>
+</th:block>
 
 <!--/* MedicalDevices */-->
 <!-- 
@@ -266,7 +266,7 @@ Status: DeviceUseStatement.status.code
 Comments: DeviceUseStatement.note[x].text (display all notes separated by <br /> )
 Date Recorded: DeviceUseStatement.recordedOn
  -->
-<div th:fragment="MedicalDevices (entryList)" th:with="section='MedicalDevices'">
+<th:block th:fragment="MedicalDevices (entryList)" th:with="section='MedicalDevices'">
 	<table class="hapiPropertyTable">
 		<caption>Medical Devices</caption>
 		<thead>
@@ -292,7 +292,7 @@ Date Recorded: DeviceUseStatement.recordedOn
 			</th:block>
 		</tbody>
 	</table>
-</div>
+</th:block>
 
 <!--/* DiagnosticResults */-->
 <!-- 
@@ -309,7 +309,7 @@ TABLE 2: DiagnosticReport
 Code: DiagnosticReport.code.text || DiagnosticReport.code.coding[x].display
 Date: DiagnosticReport.effectiveDateTime
  -->
-<div th:fragment="DiagnosticResults (entryList)" th:with="section='DiagnosticResults'">
+<th:block th:fragment="DiagnosticResults (entryList)" th:with="section='DiagnosticResults'">
 	<table class="hapiPropertyTable">
 		<caption>Diagnostic Results: Observations</caption>
 		<thead>
@@ -367,7 +367,7 @@ Date: DiagnosticReport.effectiveDateTime
 			</th:block>
 		</tbody>
 	</table>
-</div>
+</th:block>
 
 
 <!--/* VitalSigns */-->
@@ -379,7 +379,7 @@ Interpretation: Observation.interpretation.text || Observation. interpretation.c
 Comments: Observation.note[x].text (display all notes separated by <br /> )
 Date: Observation.effectiveDateTime
  -->
-<div th:fragment="VitalSigns (entryList)" th:with="section='VitalSigns'">
+<th:block th:fragment="VitalSigns (entryList)" th:with="section='VitalSigns'">
 	<table class="hapiPropertyTable">
 		<caption>Vital Signs</caption>
 		<thead>
@@ -409,7 +409,7 @@ Date: Observation.effectiveDateTime
 			</th:block>
 		</tbody>
 	</table>
-</div>
+</th:block>
 
 <!--/* Pregnancy */-->
 <!-- 
@@ -418,7 +418,7 @@ Result: Observation.valueQuantity.value || Observation.valueDateTime || Observat
 Comments: Observation.note[x].text (display all notes separated by <br /> )
 Date: Observation.effectiveDateTime
  -->
-<div th:fragment="Pregnancy (entryList)" th:with="section='Pregnancy'">
+<th:block th:fragment="Pregnancy (entryList)" th:with="section='Pregnancy'">
 	<table class="hapiPropertyTable">
 		<caption>Pregnancy</caption>
 		<thead>
@@ -444,7 +444,7 @@ Date: Observation.effectiveDateTime
 			</th:block>
 		</tbody>
 	</table>
-</div>
+</th:block>
 
 <!--/* SocialHistory */-->
 <!-- 
@@ -454,7 +454,7 @@ Unit: Observation.valueQuantity.unit
 Comments: Observation.note[x].text (display all notes separated by <br /> )
 Date: Observation.effectiveDateTime
  -->
-<div th:fragment="SocialHistory (entryList)" th:with="section='SocialHistory'">
+<th:block th:fragment="SocialHistory (entryList)" th:with="section='SocialHistory'">
 	<table class="hapiPropertyTable">
 		<caption>Social History</caption>
 		<thead>
@@ -482,7 +482,7 @@ Date: Observation.effectiveDateTime
 			</th:block>
 		</tbody>
 	</table>
-</div>
+</th:block>
 
 <!--/* PastHistoryOfIllnesses */-->
 <!-- 
@@ -491,7 +491,7 @@ Status: Condition.clinicalStatus.coding[x].display
 Comments: Condition.note[x].text (display all notes separated by <br /> )
 Onset Date: Condition.onsetDateTime
  -->
-<div th:fragment="PastHistoryOfIllnesses (entryList)" th:with="section='PastHistoryOfIllnesses'">
+<th:block th:fragment="PastHistoryOfIllnesses (entryList)" th:with="section='PastHistoryOfIllnesses'">
 	<table class="hapiPropertyTable">
 		<caption>Past History of Illnesses</caption>
 		<thead>
@@ -517,7 +517,7 @@ Onset Date: Condition.onsetDateTime
 			</th:block>
 		</tbody>
 	</table>
-</div>
+</th:block>
 
 <!--/* FunctionalStatus */-->
 <!-- 
@@ -527,7 +527,7 @@ Finding:  ClinicalImpression.summary
 Comments: ClinicalImpression.note[x].text (display all notes separated by <br /> )
 Date: ClinicalImpression.effectiveDateTime
  -->
-<div th:fragment="FunctionalStatus (entryList)" th:with="section='FunctionalStatus'">
+<th:block th:fragment="FunctionalStatus (entryList)" th:with="section='FunctionalStatus'">
 	<table class="hapiPropertyTable">
 		<caption>Functional Status</caption>
 		<thead>
@@ -555,7 +555,7 @@ Date: ClinicalImpression.effectiveDateTime
 			</th:block>
 		</tbody>
 	</table>
-</div>
+</th:block>
 
 <!--/* PlanOfCare */-->
 <!-- 
@@ -565,7 +565,7 @@ Comments: CarePlan.dosage [x].text // Not dosaage but note... right?
 Planned Start: CarePlan.period.start
 Planned End: CarePlan.period.end
  -->
-<div th:fragment="PlanOfCare (entryList)" th:with="section='PlanOfCare'">
+<th:block th:fragment="PlanOfCare (entryList)" th:with="section='PlanOfCare'">
 	<table class="hapiPropertyTable">
 		<caption>Plan of Care</caption>
 		<thead>
@@ -582,8 +582,8 @@ Planned End: CarePlan.period.end
 				<th:block th:unless='*{getResourceType().name() == "Composition"}'>	
 					<th:block th:if='${entry.getResource().getExtensionByUrl(extensionUrl)}' th:with="extension=${entry.getResource().getExtensionByUrl(extensionUrl).getValue().getValue()}">	
 						<tr th:if='${#strings.contains(extension, section)}' th:id="${#strings.arraySplit(extension, '#')[1]}">
-							<td th:text="*{getDescription()">Activity</td>
-							<td th:text="*{getIntent().getCode()}">Intent</td>
+							<td th:text="*{getDescription()}">Activity</td>
+							<td th:text="*{getIntent().toCode()}">Intent</td>
 							<td th:insert=":: concat (list=*{getNote()},attr='text')">Comments</td>
 							<td th:text="*{getPeriod().getStartElement().getValue()}">Planned Start</td>
 							<td th:text="*{getPeriod().getEndElement().getValue()}">Planned End</td>
@@ -593,7 +593,7 @@ Planned End: CarePlan.period.end
 			</th:block>
 		</tbody>
 	</table>
-</div>
+</th:block>
 
 <!--/* AdvanceDirectives */-->
 <!-- 
@@ -602,7 +602,7 @@ Status: Consent.status.code
 Action Controlled: Consent.provision.action[x].coding[x].display (concatenate items separated by comma, e.g. x, y, z)
 Date: Consent.dateTime
  -->
-<div th:fragment="AdvanceDirectives (entryList)" th:with="section='AdvanceDirectives'">
+<th:block th:fragment="AdvanceDirectives (entryList)" th:with="section='AdvanceDirectives'">
 	<table class="hapiPropertyTable">
 		<caption>Advance Directives</caption>
 		<thead>
@@ -629,7 +629,7 @@ Date: Consent.dateTime
 			</th:block>
 		</tbody>
 	</table>
-</div>
+</th:block>
 
 <!--/* Utility Fragments */-->
 
@@ -737,9 +737,9 @@ Date: Consent.dateTime
 	<th:block th:object="${onset}">
 		<th:block th:switch="*{getClass().getSimpleName()}">
 			<th:block th:case="'DateTimeType'" th:text="*{getValue()}">Date</th:block>
-			<th:block th:case="'Period'" th:text="*{getStartElement().getValue() + '-' + getEndElement().getValue()}">Date</th:block>
+			<th:block th:case="'Period'" th:text="*{#strings.concatReplaceNulls('', getStartElement().getValue(), '-', getEndElement().getValue() )}">Date</th:block>
 			<th:block th:case="'Age'" th:text="*{getValue()}">Date</th:block>
-			<th:block th:case="'Range'" th:text="*{getLow().getValue() + '-' + getHigh().getValue()}">Date</th:block>
+			<th:block th:case="'Range'" th:text="*{#strings.concatReplaceNulls('', getLow().getValue(), '-', getHigh().getValue() )}">Date</th:block>
 			<th:block th:case="'StringType'" th:text="*{getValue()}">Date</th:block>
 		</th:block>
 	</th:block>
@@ -749,9 +749,9 @@ Date: Consent.dateTime
 	<th:block th:object="${performed}">
 		<th:block th:switch="*{getClass().getSimpleName()}">
 			<th:block th:case="'DateTimeType'" th:text="*{getValue()}">Date</th:block>
-			<th:block th:case="'Period'" th:text="*{getStartElement().getValue() + '-' + getEndElement().getValue()}}">Date</th:block>
+			<th:block th:case="'Period'" th:text="*{#strings.concatReplaceNulls('', getStartElement().getValue(), '-', getEndElement().getValue() )}">Date</th:block>
 			<th:block th:case="'Age'" th:text="*{getValue()}">Date</th:block>
-			<th:block th:case="'Range'" th:text="*{getLow().getValue() + '-' + getHigh().getValue()}">Date</th:block>
+			<th:block th:case="'Range'" th:text="*{#strings.concatReplaceNulls('', getLow().getValue(), '-', getHigh().getValue() )}">Date</th:block>
 			<th:block th:case="'StringType'" th:text="*{getValue()}">Date</th:block>
 		</th:block>
 	</th:block>
@@ -811,7 +811,7 @@ Date: Consent.dateTime
 			<th:block th:case="'value'">
 				<th:block th:replace=":: concatItem (listItem=${item}, iter=${iter}, separator='')"/>
 			</th:block>
-			<th:block th:case="'severity">
+			<th:block th:case="'severity'">
 				<th:block th:replace=":: concatItem (listItem=${item.getSeverity().toCode()}, iter=${iter}, separator='')"/>
 			</th:block>
 		</th:block>
@@ -820,7 +820,7 @@ Date: Consent.dateTime
 
 <th:block th:if="${listItem}" th:fragment="concatItem (listItem, iter, separator)">
 	<th:block th:if="${!listItem.empty}">
-		<th:block th:text="${listItem.getValue()}">
+		<th:block th:text="${listItem.getClass().getSimpleName() == 'String'} ? ${listItem} : ${listItem.getValue()}">
 		</th:block>
 		<th:block th:if="${!iter.last}">
 			<th:block th:if="${!separator.empty}" th:text="${separator + ' '}" />
@@ -833,9 +833,9 @@ Date: Consent.dateTime
 
 <th:block th:if="${list}" th:fragment="concatReactionManifestation (list)">
 	<th:block th:each="item,iter : ${list}" th:if="${!list.empty}" with="attr=${attr} ?: 'display'">
-		<th:block th:if="${!item.getDescription().empty}" th:text="${item.getDescription()}">Reaction</th:block>
-		<th:block th:if="${item.getDescription().empty}">
-			<th:block th:replace=":: concatcodeableConcept (list=${item.getManifestation()})">Reaction</th:block>
+		<th:block th:if="${item.hasDescription()}" th:text="${item.getDescription()}">Reaction</th:block>
+		<th:block th:if="${!item.hasDescription()}">
+			<th:block th:replace=":: concatCodeableConcept (list=${item.getManifestation()})">Reaction</th:block>
 		</th:block>
 		<th:block th:if="${!iter.last}" th:text=", " />
 	</th:block>
@@ -857,14 +857,15 @@ Date: Consent.dateTime
 
 <th:block th:if="${list}" th:fragment="concatDoseNumber (list)">
 	<th:block th:each="item,iter : ${list}" th:if="${!list.empty}">
-		<th:block th:replace=":: renderDoseNumber (doseNumber=*${item})">Dose Number</th:block>
+		<th:block th:replace=":: renderDoseNumber (doseNumber=${item})">Dose Number</th:block>
 		<th:block th:if="${!iter.last}" th:text=", " />
 	</th:block>
 </th:block>
 
 <th:block th:if="${list}" th:fragment="concatReferenceRange (list)">
 	<th:block th:each="item,iter : ${list}" th:if="${!list.empty}">
-		<th:block th:text="${item.getLow().getValue() + '-' + item.getHigh().getValue()}">Reference Range</th:block>
+		<th:block th:if="${item.hasText()}" th:text="${item.getText()}">Reference Range</th:block>
+		<th:block th:if="${!item.hasText()}" th:text="${#strings.concatReplaceNulls('', item.getLow().getValue(), '-', item.getHigh().getValue() )}">Reference Range</th:block>
 		<th:block th:if="${!iter.last}" th:text=", " />
 	</th:block>
 </th:block>
