@@ -4,6 +4,8 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.model.primitive.IdDt;
 import ca.uhn.fhir.narrative.DefaultThymeleafNarrativeGenerator;
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
+import ca.uhn.fhir.i18n.Msg;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Condition;
 import org.hl7.fhir.r4.model.Composition;
@@ -137,7 +139,13 @@ public class PatientSummary {
 
 	public static Bundle buildFromSearch(IBundleProvider searchSet, FhirContext ctx) {			
 		List<Resource> searchResources = createResourceList(searchSet.getAllResources());
-		Patient patient = (Patient) searchResources.get(0);
+                // For sequential ids on an UUID indexed server, 404s are not returned for empty search results
+                // The following prevents a Java error inside this operation but changes could also be made upstream at IdHelperService 
+                // See hapi-fhir-jpaserver-base/src/main/java/ca/uhn/fhir/jpa/dao/index/IdHelperService.java 
+		if (searchResources.isEmpty()) {
+                        throw new ResourceNotFoundException(Msg.code(2001) + "Resource is not known"); 
+                }
+                Patient patient = (Patient) searchResources.get(0);
 		Organization author = createAuthor();
 		Composition composition = createIPSComposition(patient, author);
 
