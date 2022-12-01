@@ -6,7 +6,7 @@
 	<groupId>ca.uhn.hapi.fhir</groupId>
 	<artifactId>hapi-fhir</artifactId>
 	<packaging>pom</packaging>
-	<version>6.2.1</version>
+	<version>6.2.1-IPS</version>
 	<name>HAPI-FHIR</name>
 	<description>An open-source implementation of the FHIR specification in Java.</description>
 	<url>https://hapifhir.io</url>
@@ -24,7 +24,13 @@
 	</issueManagement>
 
 	<distributionManagement>
-		<snapshotRepository>
+		<repository>
+	      <id>project.local</id>
+        	<name>project</name>
+			<!-- A relative path is instead currently set using altDeploymentRepository -->
+        	<!-- <url>file:///absolute/path/to/hapi-fhir-jpaserver-starter/repo</url> -->
+		</repository>
+		<!-- <snapshotRepository>
 			<id>ossrh</id>
 			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 		</snapshotRepository>
@@ -35,7 +41,7 @@
 		<site>
 			<id>git.server</id>
 			<url>scm:git:git@github.com:hapifhir/hapi-fhir.git</url>
-		</site>
+		</site> -->
 	</distributionManagement>
 
 	<scm>
@@ -2005,7 +2011,7 @@
                             <groupId>ca.uhn.hapi.fhir</groupId>
                             <artifactId>hapi-fhir-checkstyle</artifactId>
 									<!-- Remember to bump this when you upgrade the version -->
-                            <version>6.2.1</version>
+                            <version>6.2.1-IPS</version>
                         </dependency>
 					</dependencies>
 				</plugin>
@@ -2067,6 +2073,9 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-deploy-plugin</artifactId>
 					<version>2.8.2</version>
+					<configuration>
+						<altDeploymentRepository>project.local::default::file:../hapi-fhir-jpaserver-starter/repo</altDeploymentRepository>
+					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>

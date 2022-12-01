@@ -1174,7 +1174,7 @@ public class SearchBuilder implements ISearchBuilder {
 						continue;
 					}
 
-					paths = param.getPathsSplitForResourceType(resType);
+					paths = theReverseMode ? param.getPathsSplitForResourceType(resType) : param.getPathsSplit();
 					// end replace
 
 					String targetResourceType = defaultString(nextInclude.getParamTargetType(), null);

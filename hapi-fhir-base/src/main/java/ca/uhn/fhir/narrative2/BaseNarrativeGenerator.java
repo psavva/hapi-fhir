@@ -85,8 +85,12 @@ public abstract class BaseNarrativeGenerator implements INarrativeGenerator {
 			// Extract [element].text of type Narrative
 			INarrative nextTargetNarrative = getOrCreateNarrativeChildElement(theFhirContext, nextTargetContext);
 
+			// If the resource is a bundle, pass the entire bundle to the template not just the target context
+			// If this is not always desirable, perhaps the method signature should support a switch to determine which context gets passed to the template
+			IBase theTemplateContext = resourceName.toString().equals("Bundle") ? theResource : nextTargetContext;
+			
 			// Create the actual narrative text
-			String narrative = applyTemplate(theFhirContext, theTemplate, nextTargetContext);
+			String narrative = applyTemplate(theFhirContext, theTemplate, theTemplateContext);
 			narrative = cleanWhitespace(narrative);
 
 			if (isNotBlank(narrative)) {

@@ -4271,10 +4271,10 @@ public class ResourceProviderR4Test extends BaseResourceProviderR4Test {
 
 		myDaoConfig.setMaximumExpansionSize(new DaoConfig().getMaximumExpansionSize());
 	}
-
 	private void assertOneResult(Bundle theResponse) {
 		assertThat(theResponse.getEntry().size(), is(equalTo(1)));
 	}
+
 
 	private void printResourceToConsole(IBaseResource theResource) {
 		ourLog.info(myFhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(theResource));

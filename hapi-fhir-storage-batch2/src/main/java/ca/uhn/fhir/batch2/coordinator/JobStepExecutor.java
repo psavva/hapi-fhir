@@ -99,7 +99,7 @@ public class JobStepExecutor<PT extends IModelJson, IT extends IModelJson, OT ex
 		if (theDataSink.getWorkChunkCount() <= 1) {
 			ourLog.debug("Gated job {} step {} produced exactly one chunk:  Triggering a maintenance pass.", myDefinition.getJobDefinitionId(), myCursor.currentStep.getStepId());
 			myJobMaintenanceService.triggerMaintenancePass();
-		} else {
+			} else if (theDataSink.hasExactlyOneChunk()) {
 			ourLog.debug("Gated job {} step {} produced {} chunks:  Disabling fast tracking.", myDefinition.getJobDefinitionId(), myCursor.currentStep.getStepId(), theDataSink.getWorkChunkCount());
 			myInstance.setFastTracking(false);
 			myJobPersistence.updateInstance(myInstance);
