@@ -80,7 +80,7 @@
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>hapi-fhir-structures-r4b</artifactId>
-			<version>6.2.1</version>
+			<version>6.2.1-IPS</version>
 		</dependency>
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
@@ -105,7 +105,7 @@
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>hapi-fhir-validation-resources-r5</artifactId>
-			<version>6.2.1</version>
+			<version>6.2.1-IPS</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.velocity</groupId>
@@ -300,4 +300,3 @@
 	</build>
 
 </project>
-
